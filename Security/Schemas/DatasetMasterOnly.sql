@@ -1,0 +1,3 @@
+CREATE SCHEMA [DatasetMasterOnly]
+AUTHORIZATION [dbo]
+GO

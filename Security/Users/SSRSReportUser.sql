@@ -1,0 +1,2 @@
+CREATE USER [SSRSReportUser] FOR LOGIN [SSRSReportUser]
+GO

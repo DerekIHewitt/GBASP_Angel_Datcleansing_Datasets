@@ -1,0 +1,38 @@
+CREATE TABLE [Dataset].[SerialObject_ovl]
+(
+[PK] [int] NOT NULL IDENTITY(1, 1),
+[MIG_SITE_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[LEGACY_OBJECT_ID] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[IsSuspect] [bit] NOT NULL CONSTRAINT [DF_SerialObject_ovl_IsSuspect] DEFAULT ((0)),
+[SRC_MCH_NAME] [nvarchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_CUSTOMER_ID] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_PART_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_SERIAL_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_INSTALLATION_DATE] [date] NOT NULL,
+[SRC_OWNERSHIP] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_OWNER] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_LOCATION1] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_LOCATION2] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_LATITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_LONGITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_OPERATIONAL_STATUS] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MCH_NAME] [nvarchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CUSTOMER_ID] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PART_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SERIAL_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INSTALLATION_DATE] [date] NULL,
+[OWNERSHIP] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[OWNER] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LOCATION1] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LOCATION2] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LATITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LONGITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[OPERATIONAL_STATUS] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+) ON [PRIMARY]
+GO
+ALTER TABLE [Dataset].[SerialObject_ovl] ADD CONSTRAINT [PK_SerialObject_ovl] PRIMARY KEY CLUSTERED  ([PK]) ON [PRIMARY]
+GO
+CREATE NONCLUSTERED INDEX [IX_SerialObject_ovl] ON [Dataset].[SerialObject_ovl] ([MIG_SITE_NAME], [LEGACY_OBJECT_ID], [PK]) ON [PRIMARY]
+GO
