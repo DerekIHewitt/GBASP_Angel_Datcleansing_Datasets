@@ -19,7 +19,8 @@ SELECT Dataset.Customer_Header_DcEx.ID, Dataset.Customer_Header_DcEx.MIG_SITE_NA
              Dataset.Customer_Header_DcEx.NX_ALLOWED_OVERDUE_DAYS, Dataset.Customer_Header_DcEx.NX_CREDIT_RELATIONSHIP_EXIST, Dataset.Customer_Header_DcEx.NX_CREDIT_RELATIONSHIP_TYPE_DB, Dataset.Customer_Header_DcEx.NX_PARENT_COMPANY, 
              Dataset.Customer_Header_DcEx.NX_PARENT_CUSTOMER_ID, Dataset.Customer_Header_DcEx.NX_CUST_ORDER_INVOICING_DB, Dataset.Customer_Header_DcEx.NX_CUST_ORDER_INV_TYPE_DB, Dataset.Customer_Header_DcEx.NX_CONSOLIDATION_DAY_DB, 
              Dataset.Customer_Header_DcEx.NX_SAGE_CODE, Dataset.Customer_Header_DcEx.NX_OLD_CUST_REF1, Dataset.Customer_Header_DcEx.NX_OLD_CUST_REF2, Dataset.Customer_Header_DcEx.NX_BOOK_IN_DB, Dataset.Customer_Header_DcEx.NX_NO_LIMIT_DB, 
-             Dataset.Customer_Header_DcEx.NX_ON_SITE_RA_DB, Dataset.Customer_Header_DcEx.NX_PURCHASE_ORDER_REQ_DB, Dataset.Customer_Header_DcEx.NX_SHORT_TERM_DB, Dataset.Customer_Header_DcEx.NX_COST_CODE
+             Dataset.Customer_Header_DcEx.NX_ON_SITE_RA_DB, Dataset.Customer_Header_DcEx.NX_PURCHASE_ORDER_REQ_DB, Dataset.Customer_Header_DcEx.NX_SHORT_TERM_DB, Dataset.Customer_Header_DcEx.NX_COST_CODE, 
+             Dataset.Customer_Header_DcEx.NX_BR_ORDER_TYPE, Dataset.Customer_Header_DcEx.NX_BR_BLOCKED_DD, Dataset.Customer_Header_DcEx.NX_BR_CONSOLIDATION
 FROM   Dataset.Customer_Header_DcEx LEFT OUTER JOIN
              Dataset.Customer_Filter_Override ON Dataset.Customer_Header_DcEx.MIG_SITE_NAME = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND Dataset.Customer_Header_DcEx.CUSTOMER_ID = Dataset.Customer_Filter_Override.CUSTOMER_ID
 WHERE (Dataset.Filter_Customer(Dataset.Customer_Header_DcEx.MIG_SITE_NAME, 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), 
@@ -98,22 +99,22 @@ Begin DesignProperties =
          Left = 0
       End
       Begin Tables = 
+         Begin Table = "Customer_Header_DcEx (Dataset)"
+            Begin Extent = 
+               Top = 9
+               Left = 688
+               Bottom = 454
+               Right = 1300
+            End
+            DisplayFlags = 280
+            TopColumn = 68
+         End
          Begin Table = "Customer_Filter_Override (Dataset)"
             Begin Extent = 
                Top = 9
                Left = 363
                Bottom = 398
                Right = 631
-            End
-            DisplayFlags = 280
-            TopColumn = 0
-         End
-         Begin Table = "Customer_Header_DcEx (Dataset)"
-            Begin Extent = 
-               Top = 9
-               Left = 688
-               Bottom = 206
-               Right = 1093
             End
             DisplayFlags = 280
             TopColumn = 0

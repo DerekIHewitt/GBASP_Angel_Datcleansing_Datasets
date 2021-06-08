@@ -93,6 +93,9 @@ SET NOCOUNT ON;
       ,[ORIGINAL_END_DATE]
       ,[ORIGINAL_START_DATE]
       ,[CONTRACT_TERM]
+	  ,[FIRST_REVALUATION_DATE]
+	  ,[REVALUATION_TYPE]
+	  ,[PO_SCHEMA]
       ,[COMMENT])
 	  
 
@@ -550,7 +553,26 @@ SET NOCOUNT ON;
 						 CASE WHEN ISNULL(EQH_Contract_Pd1,0) = 0 THEN ''
 						 ELSE REPLACE(DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
 						 ,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)),0,'')
-						 END																				AS CONTRACT_TERM, 
+						 END																				AS CONTRACT_TERM,
+						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) = '1800-12-28'
+						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate), '1800-12-28', NULL) 
+                         ELSE 
+						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) < getDate()
+						      THEN CASE WHEN 
+							  dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)) < getDate()
+							  THEN dateadd(year, (2022 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))
+							  ELSE dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))
+							  END
+						 ELSE
+						     DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)
+					     END
+
+						 END																				AS FIRST_REVALUATION_DATE,
+						 EQH_PRSchemeID																		AS REVALUATION_TYPE,
+						 'CUSTOMER_LEVEL'																	AS PO_SCHEMA,
 						 ''																					AS COMMENT
 						 
 						 
@@ -756,6 +778,8 @@ end
 ,EQ.EQH_FixSaniDate
 ,EQ.EQH_ELSpan
 ,EQ.EQH_M_Next_Due
+,EQ.EQH_PRSchemeID
+,EQ.EQH_PRDueDate
 ,S.slp_days
 ,P.CATEGORISATION
 ,EQ.EQH_Start_Date

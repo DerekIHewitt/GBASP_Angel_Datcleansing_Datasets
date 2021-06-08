@@ -2,7 +2,6 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
 CREATE VIEW [Dataset].[ServiceContract_Raw_dc_Filtered]
 AS
 SELECT        Dataset.ServiceContract_Raw_dc.ID, Dataset.ServiceContract_Raw_dc.MIG_SITE_NAME, Dataset.ServiceContract_Raw_dc.MIG_CREATED_DATE, Dataset.ServiceContract_Raw_dc.CUSTOMER_INVOICE, 
@@ -23,7 +22,8 @@ SELECT        Dataset.ServiceContract_Raw_dc.ID, Dataset.ServiceContract_Raw_dc.
                          Dataset.ServiceContract_Raw_dc.SLA_SER, Dataset.ServiceContract_Raw_dc.SLA_TER, Dataset.ServiceContract_Raw_dc.SLA_CMA, Dataset.ServiceContract_Raw_dc.SLA_DEL, 
                          Dataset.ServiceContract_Raw_dc.CURRENT_CONTRACT, Dataset.ServiceContract_Raw_dc.CURRENT_CONTRACT_NUMBER, Dataset.ServiceContract_Raw_dc.CURRENT_START_DATE, 
                          Dataset.ServiceContract_Raw_dc.ORIGINAL_CONTRACT_NUMBER, Dataset.ServiceContract_Raw_dc.ORIGINAL_END_DATE, Dataset.ServiceContract_Raw_dc.ORIGINAL_START_DATE, 
-                         Dataset.ServiceContract_Raw_dc.CONTRACT_TERM, Dataset.ServiceContract_Raw_dc.COMMENT
+                         Dataset.ServiceContract_Raw_dc.CONTRACT_TERM, Dataset.ServiceContract_Raw_dc.COMMENT, Dataset.ServiceContract_Raw_dc.FIRST_REVALUATION_DATE, Dataset.ServiceContract_Raw_dc.REVALUATION_TYPE, 
+                         Dataset.ServiceContract_Raw_dc.PO_SCHEMA
 FROM            Dataset.ServiceContract_Raw_dc LEFT OUTER JOIN
                          Dataset.SerialObject_Filter_Override LEFT OUTER JOIN
                          Dataset.SerialObject_dc ON Dataset.SerialObject_Filter_Override.MIG_SITE_NAME = Dataset.SerialObject_dc.MIG_SITE_NAME AND Dataset.SerialObject_Filter_Override.MCH_CODE = Dataset.SerialObject_dc.MCH_CODE ON 
@@ -118,7 +118,7 @@ Begin DesignProperties =
                Right = 304
             End
             DisplayFlags = 280
-            TopColumn = 0
+            TopColumn = 58
          End
          Begin Table = "SerialObject_Filter_Override (Dataset)"
             Begin Extent = 
@@ -177,9 +177,9 @@ Begin DesignProperties =
          Append = 1400
          NewValue = 1170
          SortType = 1350
-         Sort', 'SCHEMA', N'Dataset', 'VIEW', N'ServiceContract_Raw_dc_Filtered', NULL, NULL
+         Sor', 'SCHEMA', N'Dataset', 'VIEW', N'ServiceContract_Raw_dc_Filtered', NULL, NULL
 GO
-EXEC sp_addextendedproperty N'MS_DiagramPane2', N'Order = 1410
+EXEC sp_addextendedproperty N'MS_DiagramPane2', N'tOrder = 1410
          GroupBy = 1350
          Filter = 1350
          Or = 1350

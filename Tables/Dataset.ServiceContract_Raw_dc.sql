@@ -65,6 +65,9 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_dc]
 [ORIGINAL_END_DATE] [date] NULL,
 [ORIGINAL_START_DATE] [date] NULL,
 [CONTRACT_TERM] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF_ServiceContract_Raw_dc_CONTRACT_TERM] DEFAULT (''),
+[FIRST_REVALUATION_DATE] [date] NULL,
+[REVALUATION_TYPE] [varchar] (25) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PO_SCHEMA] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [COMMENT] [text] COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL CONSTRAINT [DF_ServiceContract_Raw_dcEqpData_Comment] DEFAULT ('')
 ) ON [PRIMARY]
 GO

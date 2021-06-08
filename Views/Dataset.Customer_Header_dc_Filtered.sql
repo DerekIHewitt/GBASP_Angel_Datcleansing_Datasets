@@ -2,8 +2,7 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-
-CREATE   VIEW [Dataset].[Customer_Header_dc_Filtered]
+CREATE VIEW [Dataset].[Customer_Header_dc_Filtered]
 AS
 SELECT Dataset.Customer_Header_dc.ID, Dataset.Customer_Header_dc.MIG_SITE_NAME, Dataset.Customer_Header_dc.MIG_COMMENT, Dataset.Customer_Header_dc.MIG_CREATED_DATE, Dataset.Customer_Header_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, 
              Dataset.Customer_Header_dc.PAY_TERM_ID, Dataset.Customer_Header_dc.CREDIT_LIMIT, Dataset.Customer_Header_dc.INVOICE_CUSTOMER, Dataset.Customer_Header_dc.INVOICE_SORT_DB, Dataset.Customer_Header_dc.EMAIL_ORDER_CONF_DB, 
@@ -21,7 +20,8 @@ SELECT Dataset.Customer_Header_dc.ID, Dataset.Customer_Header_dc.MIG_SITE_NAME, 
              Dataset.Customer_Header_dc.NX_CONSOLIDATION_DAY_DB, Dataset.Customer_Header_dc.NX_SAGE_CODE, Dataset.Customer_Header_dc.NX_OLD_CUST_REF1, Dataset.Customer_Header_dc.NX_OLD_CUST_REF2, Dataset.Customer_Header_dc.NX_BOOK_IN_DB, 
              Dataset.Customer_Header_dc.NX_NO_LIMIT_DB, Dataset.Customer_Header_dc.NX_ON_SITE_RA_DB, Dataset.Customer_Header_dc.NX_PURCHASE_ORDER_REQ_DB, Dataset.Customer_Header_dc.NX_SHORT_TERM_DB, Dataset.Customer_Header_dc.NX_COST_CODE, 
              Dataset.Filter_Customer(Dataset.Customer_Header_dc.MIG_SITE_NAME, 'dc', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), 
-             Dataset.Customer_Header_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE) AS NX_FILTER_STATUS
+             Dataset.Customer_Header_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE) AS NX_FILTER_STATUS, Dataset.Customer_Header_dc.NX_BR_ORDER_TYPE, Dataset.Customer_Header_dc.NX_BR_BLOCKED_DD, 
+             Dataset.Customer_Header_dc.NX_BR_CONSOLIDATION
 FROM   Dataset.Customer_Header_dc LEFT OUTER JOIN
              Dataset.Customer_Filter_Override ON Dataset.Customer_Header_dc.MIG_SITE_NAME = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND Dataset.Customer_Header_dc.CUSTOMER_ID = Dataset.Customer_Filter_Override.CUSTOMER_ID
 WHERE (Dataset.Filter_Customer(Dataset.Customer_Header_dc.MIG_SITE_NAME, 'dc', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), 
@@ -108,14 +108,14 @@ Begin DesignProperties =
                Right = 306
             End
             DisplayFlags = 280
-            TopColumn = 0
+            TopColumn = 59
          End
          Begin Table = "Customer_Filter_Override (Dataset)"
             Begin Extent = 
                Top = 19
                Left = 625
                Bottom = 375
-               Right = 893
+               Right = 1037
             End
             DisplayFlags = 280
             TopColumn = 0
