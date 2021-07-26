@@ -71,7 +71,8 @@ CREATE TABLE [Dataset].[Customer_Header_dc]
 [NX_CUST_PRICE_GROUP_ID] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Header_dc_NX_CUST_PRICE_GROUP_ID] DEFAULT (''),
 [NX_BR_ORDER_TYPE] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NX_BR_BLOCKED_DD] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[NX_BR_CONSOLIDATION] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[NX_BR_CONSOLIDATION] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NX_LEGAL_ENTITY_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[Customer_Header_dc] ADD CONSTRAINT [PK_Customer_Header_dc] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

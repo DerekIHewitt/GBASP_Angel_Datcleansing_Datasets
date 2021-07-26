@@ -93,14 +93,19 @@ SET NOCOUNT ON;
       ,[ORIGINAL_END_DATE]
       ,[ORIGINAL_START_DATE]
       ,[CONTRACT_TERM]
+	  ,[FIRST_REVALUATION_DATE]
+	  ,[REVALUATION_TYPE]
+	  ,[PO_SCHEMA]
       ,[COMMENT])
 	  
 	  
 select 
 						'GBASP'																			    AS MIG_SITE_NAME, 
 						 GETDATE()																			AS MIG_CREATED_DATE, 
-						 ISNULL(CASE WHEN CUS_ACCT_TO_INV = 0 
-						 THEN '' ELSE convert(varchar,CUS_ACCT_TO_INV) END, '')												AS CUSTOMER_INVOICE, 
+						 --ISNULL(CASE WHEN CUS_ACCT_TO_INV = 0 
+						 --THEN '' ELSE convert(varchar,CUS_ACCT_TO_INV) END, '')								
+						 
+						 ''																					AS CUSTOMER_INVOICE, -- ALT customer to be left blank for UK 
                          CUS_Account																		AS CUSTOMER_DELIVERY, 
 						 CUS_Company																		AS CONTRACT_NAME,
 						 CASE
@@ -111,7 +116,7 @@ select
 						 WHEN MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service'		   THEN	';2;3;'				--This is the new contract type
 						 WHEN MATRIX_TYPE = 'Sold Non MIF'		   THEN	';Sold Non MIF;'
 						 WHEN MATRIX_TYPE =  'Sani Only SIF'	   THEN ';9;6;'
-						 WHEN MATRIX_TYPE = 'SIF Non MIF'		   THEN ';SIF Non MIF;'
+						 WHEN MATRIX_TYPE = 'SIF Non MIF'		   THEN ';SIF Non MIF;'							--Should this be 9 since they are NON mif?
 						 WHEN MATRIX_TYPE = 'QUERY EQUIPMENT TYPES' THEN ';QUERY EQUIPMENT TYPES;'
 						 ELSE ''
 
@@ -454,10 +459,11 @@ select
 						 WHEN CONCAT(ELEVY_FREQ, EQH_ELSpan) = '1W' 
 						 THEN 52 
 						 WHEN ELEVY_FREQ = 0 
-						 THEN CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0
+						 THEN 
+						 CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0
 						 ELSE
-						 1 END END, 
-						 CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0 ELSE 1 END)
+						 1 END
+						 END, CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0 ELSE 1 END)
 																											AS ENV_INV_FREQ,
 						 
                          CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_ELDue) = '1800-12-28' 
@@ -549,11 +555,30 @@ select
 						 CASE WHEN ISNULL(EQH_Contract_Pd1,0) = 0 THEN ''
 						 ELSE REPLACE(DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
 						 ,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)),0,'')
-						 END																				AS CONTRACT_TERM, 
+						 END																				AS CONTRACT_TERM,
+						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) = '1800-12-28'
+						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate), '1800-12-28', NULL) 
+                         ELSE 
+						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) < getDate()
+						      THEN CASE WHEN 
+							  dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)) < getDate()
+							  THEN dateadd(year, (2022 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))
+							  ELSE dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
+							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))
+							  END
+						 ELSE
+						     DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)
+					     END
+
+						 END																				AS FIRST_REVALUATION_DATE,
+						 EQH_PRSchemeID																		AS REVALUATION_TYPE,
+						 'CUSTOMER_LEVEL'																	AS PO_SCHEMA,
 						 ''																					AS COMMENT
 						 
 						 
-     
+    
  from 
 (SELECT DISTINCT
 -----------------------------------------------TOTALCARE----------------------------------------------------------
@@ -561,7 +586,7 @@ select
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
 	   and eqh_pwfreq = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in 
 	   and eqh_i_freq > 0
-	   and (eqh_rental_amnt) > 0
+	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
@@ -582,7 +607,7 @@ then 'MIF - Totalcare only'
 then 'MIF - Rental Only Recurring Sani/Service'
 
 
-------------------------------------------RENTAL ONLY NON MIF-----------------------------------------------------
+------------------------------------------RENTAL ONLY NON MIF--------------------INV LINE ONLY---------------------------------
 when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks' , 'Vending m/c')
 	   and eqh_pwfreq = 0
@@ -627,7 +652,7 @@ when eqh_status_flag = 'S'
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
 	   and eqh_pwfreq = 0
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
-	   and eqh_rental_amnt = 0
+	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) = 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
@@ -677,11 +702,23 @@ end
   , eqh_status_flag as 'R/S'
   , eqh_pwfreq AS PIPEWORK_FREQ
   , eqh_i_freq as Rental_Frequency_inv
-  , eqh_rental_amnt as Rental_Price
+  ,(eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) as Rental_Price				--Added c_value and sani amnt as a fix
   , eqh_frequency as sani_freq
   ,isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) AS FINALSANIPRICE
   , EQH_M_FREQ AS MAINT_FREQ
-  ,isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price) AS FINALMAINTPRICE
+ --,isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price) AS FINALMAINTPRICE
+     ,case when concat(eqh_m_freq,eqh_m_span) = '1M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)          
+	 when concat(eqh_m_freq,eqh_m_span) = '1Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/12,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '2M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '2Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/24,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '3M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '3Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/36,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '4W' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/4*52/12,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '5Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/60,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '6M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '12M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+ELSE isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)    
+END AS  FINALMAINTPRICE																							--RISM         11-06-2021 REPLACES FINALMAINTPRICE TO GET UNITARY VALUE
  ------------------------------------validation end-------------------------------------------------------------------------------------------------
  ,EQ.EQH_ACCOUNT
  ,C.CUS_TYPE
@@ -755,6 +792,8 @@ end
 ,EQ.EQH_FixSaniDate
 ,EQ.EQH_ELSpan
 ,EQ.EQH_M_Next_Due
+,EQ.EQH_PRSchemeID
+,EQ.EQH_PRDueDate
 ,S.slp_days
 ,P.CATEGORISATION
 ,EQ.EQH_Start_Date

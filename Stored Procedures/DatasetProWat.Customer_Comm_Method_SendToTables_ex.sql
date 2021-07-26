@@ -48,13 +48,22 @@ SET NOCOUNT ON;
 		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Contact1)),'') AS CUS_Contact1, -- added 20-02-2020
 		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Contact2)),'') AS CUS_Contact2,  -- added 20-02-2020
 		  TRIM([DatasetProWat].[CleanString](CUS_DMName))	AS CUS_DMName,  -- added 20-02-2020
-		  TRIM([DatasetProWat].[CleanString](CUS_Email1))	AS CUS_Email1,
-		  TRIM([DatasetProWat].[CleanString](CUS_Email2))	AS CUS_Email2,
+		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''),1) = ';' THEN 
+			   SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''))-1)
+			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ','') END  
+																			AS CUS_Email1,
+		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''),1) = ';' THEN
+		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''))-1)
+			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ','') END    
+																			AS CUS_Email2,
 		  TRIM([DatasetProWat].[CleanString](CUS_Tel))		AS CUS_Tel,
 		  TRIM([DatasetProWat].[CleanString](CUS_Tel2))	AS CUS_Tel2,
 		  TRIM([DatasetProWat].[CleanString](CUS_Fax))		AS CUS_Fax,
 		  TRIM([DatasetProWat].[CleanString](CUS_Fax2))	AS CUS_Fax2,
-		  TRIM([DatasetProWat].[CleanString](CUS_DMEmail))	AS CUS_DMEmail,
+		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''),1) = ';' THEN
+		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''))-1)
+			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ','') END 
+																			AS CUS_DMEmail,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMFax))	AS CUS_DMFax,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMPhone))	AS CUS_DMPhone,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMMob))	AS CUS_DMMob,

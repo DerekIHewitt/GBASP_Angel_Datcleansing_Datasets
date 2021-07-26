@@ -11,6 +11,8 @@ GO
   Author:      RYFE
   Description: Based on original version 
 --RYFE	       19-02-2021	Created based on GBASP Data Cleansing ServiceContract_Raw_SendForTransform
+--RISM         11-06-2021   Maint price needs to be divided by same rules as the service freq rules are applied, so finalmaintprice has been amended 
+--RISM		   14-06-2021   Elevy needs to be ELMONTH for EL_SPAN  = 'M' and ELANNUAL for EL_SPAN = 'Y'. price needed to have same rules as maint price above so if elannual divide by 12
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -102,15 +104,18 @@ SET NOCOUNT ON;
 	select 
 						'GBASP'																			    AS MIG_SITE_NAME, 
 						 GETDATE()																			AS MIG_CREATED_DATE, 
-						 ISNULL(CASE WHEN CUS_ACCT_TO_INV = 0 
-						 THEN '' ELSE convert(varchar,CUS_ACCT_TO_INV) END, '')												AS CUSTOMER_INVOICE, 
+						 --ISNULL(CASE WHEN CUS_ACCT_TO_INV = 0 
+						 --THEN '' ELSE convert(varchar,CUS_ACCT_TO_INV) END, '')								
+						 
+						 ''																					AS CUSTOMER_INVOICE, -- ALT customer to be left blank for UK 
                          CUS_Account																		AS CUSTOMER_DELIVERY, 
 						 CUS_Company																		AS CONTRACT_NAME,
 						 CASE
 						 WHEN MATRIX_TYPE = 'MIF - Totalcare only' THEN ';1;'
 						 WHEN MATRIX_TYPE = 'Non MIF Rental Only'  THEN ';B;'								-- New Matric type needed
-						 WHEN MATRIX_TYPE = 'MIF - Rental Only'	   THEN ';A;'								--New matrix type needed
-						 WHEN MATRIX_TYPE = 'Maintenance Only SIF' THEN ';3;' 
+						 WHEN MATRIX_TYPE = 'MIF - Rental Only'	   THEN ';A;'								-- New matrix type needed
+						 WHEN MATRIX_TYPE = 'Maintenance Only SIF' THEN ';3;'
+						 WHEN MATRIX_TYPE = 'Maintenance Only SIF-SILVER' THEN ';4;'						-- Matrix 4 with CMA line
 						 WHEN MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service'		   THEN	';2;3;'				--This is the new contract type
 						 WHEN MATRIX_TYPE = 'Sold Non MIF'		   THEN	';Sold Non MIF;'
 						 WHEN MATRIX_TYPE =  'Sani Only SIF'	   THEN ';9;6;'
@@ -318,7 +323,7 @@ SET NOCOUNT ON;
 						 ISNULL(EQH_M_Span, '{NULL}')														AS SERVICE_UNIT, -- Changed to get Maint span since this field is regarding invoicing
 
 						 CASE
-						 WHEN MATRIX_TYPE = 'Maintenance Only SIF'
+						 WHEN MATRIX_TYPE IN ( 'Maintenance Only SIF' , 'Maintenance Only SIF-SILVER' )
 						 THEN ISNULL(FINALMAINTPRICE, 0)
 						 WHEN MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service'
 						 THEN ISNULL(FINALMAINTPRICE, 0)
@@ -460,12 +465,12 @@ SET NOCOUNT ON;
 						 THEN 
 						 CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0
 						 ELSE
-						 1 END
+						 12 END
 						 END, CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0 ELSE 1 END)
 																											AS ENV_INV_FREQ,
 						 
-                         CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_ELDue) = '1800-12-28' 
-						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_ELDue), '1800-12-28',
+                         CASE WHEN DatasetProWat.CONVERTFROMCLARION(isnull(EQH_ELDue,0)) = '1800-12-28' 
+						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(isnull(EQH_ELDue,0)), '1800-12-28',
 
 						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_DUE_INV) = '1800-12-28' 
 						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_DUE_INV), '1800-12-28', CONVERT(DATE,DATEADD(month, DATEDIFF(month, 0,
@@ -480,7 +485,7 @@ SET NOCOUNT ON;
 						 )
 						 ELSE 
 						 REPLACE(CONVERT(DATE,DATEADD(month, DATEDIFF(month, 0,
-						 DatasetProWat.CONVERTFROMCLARION(EQH_ELDue)), 0),103) , '1900-01-01', 
+						 DatasetProWat.CONVERTFROMCLARION(isnull(EQH_ELDue,0))), 0),103) , '1900-01-01', 
 						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_DUE_INV) = '1800-12-28' 
 						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_DUE_INV), '1800-12-28', CONVERT(DATE,DATEADD(month, DATEDIFF(month, 0,
 						 GETDATE()), 0),103))
@@ -584,7 +589,7 @@ SET NOCOUNT ON;
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
 	   and eqh_pwfreq = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in 
 	   and eqh_i_freq > 0
-	   and (eqh_rental_amnt) > 0
+	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
@@ -645,20 +650,36 @@ when eqh_status_flag = 'S'
 	   and EQH_M_FREQ = 0
 then 'Sold Non MIF'
 
-------------------------------------------MAINTENANCE ONLY SIF---------------------------------------------------------------------------------------------
+------------------------------------------MAINTENANCE ONLY SIF GOLD---------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
 	   and eqh_pwfreq = 0
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
-	   and eqh_rental_amnt = 0
+	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) = 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
 	   and EQH_M_FREQ > 0
 	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)> 0
+	   and EQH_M_Stock_Code not like ('SILV%')											--Added RYFE 07/07/2021
 then 'Maintenance Only SIF'
 
+------------------------------------------MAINTENANCE ONLY SIF SILVER---------------------------------------------------------------------------------------------
+when eqh_status_flag = 'S' 
+       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
+	   and eqh_pwfreq = 0
+	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
+	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) = 0
+	   and eqh_frequency > 0
+	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
+	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
+	   --and eqh_filter_Freq = 0
+	   and EQH_M_FREQ > 0
+	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)> 0
+	   and EQH_M_Stock_Code  like ('SILV%')											--Added RYFE 07/07/2021
+then 'Maintenance Only SIF-SILVER'
+-------------------------------------------------------------------------------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
 	   and eqh_pwfreq = 0
@@ -700,11 +721,23 @@ end
   , eqh_status_flag as 'R/S'
   , eqh_pwfreq AS PIPEWORK_FREQ
   , eqh_i_freq as Rental_Frequency_inv
-  , eqh_rental_amnt as Rental_Price
+  ,(eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) as Rental_Price				--Added c_value and sani amnt as a fix
   , eqh_frequency as sani_freq
   ,isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) AS FINALSANIPRICE
   , EQH_M_FREQ AS MAINT_FREQ
-  ,isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price) AS FINALMAINTPRICE
+  --,isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price) AS FINALMAINTPRICE   --RISM         11-06-2021 NEEDED EXTRA VALIDATION TO GET CORRECT UNIT PRICE
+    ,case when concat(eqh_m_freq,eqh_m_span) = '1M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)	-- RYFE 15/06/2021 Changed the code only to devide by        
+	 when concat(eqh_m_freq,eqh_m_span) = '1Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)					--  EQH_M_FREQ since Y and W are catered for in the pre processor
+	 when concat(eqh_m_freq,eqh_m_span) = '2M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '2Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '3M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '3Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '4W' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '5Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '6M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+	 when concat(eqh_m_freq,eqh_m_span) = '12M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)    
+ELSE isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)    
+END AS  FINALMAINTPRICE																							--RISM         11-06-2021 REPLACES FINALMAINTPRICE TO GET UNITARY VALUE
  ------------------------------------validation end-------------------------------------------------------------------------------------------------
  ,EQ.EQH_ACCOUNT
  ,C.CUS_TYPE
@@ -763,7 +796,10 @@ end
 , EQH_UseELPrice
 , EQH_ELFREQ AS ELEVY_FREQ
 , EQH_Elprice as ELEVY_PRICE
-,isnull(CASE WHEN EQH_UseELPrice = 1 THEN EQH_Elprice ELSE PBE.PRI_Price END,0) AS FINAL_ELEVY_PRICE
+--,isnull(CASE WHEN EQH_UseELPrice = 1 THEN EQH_Elprice ELSE PBE.PRI_Price END,0) AS FINAL_ELEVY_PRICE                             --RISM 14-06-21 OLD RULE
+,case when eq.eqh_elspan = 'Y' then isnull(isnull(CASE WHEN EQH_UseELPrice = 1 THEN EQH_Elprice ELSE PBE.PRI_Price END,0),0)	   -- RYFE 15/06/2021 Removed devide by 12 since it is catered in the preprocessor	
+	  when eq.eqh_elspan = 'M' then        isnull(CASE WHEN EQH_UseELPrice = 1 THEN EQH_Elprice ELSE PBE.PRI_Price END,0) 
+	  ELSE 0 END																					 AS FINAL_ELEVY_PRICE          --RISM 14-06-2021 NEW RULE TO CATER FOR MONTHLY PRICE EQUIVALENT
 ,EQ.EQH_ELDue
 , EQ.EQH_DUE_INV
 ,C.CUS_ACCT_TO_INV
@@ -808,8 +844,8 @@ LEFT JOIN DatasetProWat.Syn_Stock_ex  ST_FIL     ON  ST_FIL.STO_STOCK_CODE = EQ.
 LEFT JOIN DatasetProWat.Syn_PriceBk_ex  AS PBM     ON EQ.EQH_M_Stock_Code = PBM.PRI_Stock_Code  AND CASE WHEN cus_pricebookac = 0 THEN cus_account ELSE cus_pricebookac END = PBM.PRI_Account 
 LEFT JOIN DatasetProWat.Syn_Stock_ex  ST_MNT     ON  ST_MNT.STO_STOCK_CODE = EQ.EQH_M_Stock_Code
 
-LEFT JOIN DatasetProWat.Syn_PriceBk_ex  AS PBE     ON PBE.PRI_Stock_Code = 'ENV_LVY'  AND CASE WHEN cus_pricebookac = 0 THEN cus_account ELSE cus_pricebookac END = PBE.PRI_Account
-
+LEFT JOIN DatasetProWat.Syn_PriceBk_ex  AS PBE     ON PBE.PRI_Stock_Code = case when eqh_elspan = 'M' then 'ELMONTH' WHEN EQH_ELSPAN = 'Y' THEN 'ELANNUAL' ELSE 'ENV_LVY' END  --RISM 14-06-2021 CHANGED LINK AS LEVY CODES ARE HARDCODED IN PROWAT
+													AND CASE WHEN cus_pricebookac = 0 THEN cus_account ELSE cus_pricebookac END = PBE.PRI_Account
 LEFT OUTER JOIN
                          DatasetProWat.Syn_SLPCode_ex AS S ON 
 						 S.SLP_PCode = SUBSTRING(C.CUS_PCode, 1, CASE WHEN CHARINDEX(' ', c.cus_pcode) = 0 THEN LEN(c.cus_pcode) ELSE CHARINDEX(' ', c.cus_pcode) - 1 END) 
