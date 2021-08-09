@@ -26,7 +26,8 @@ SELECT        Dataset.Customer_Header_dc.ID, Dataset.Customer_Header_dc.MIG_SITE
                          Dataset.Customer_Header_dc.NX_ON_SITE_RA_DB, Dataset.Customer_Header_dc.NX_PURCHASE_ORDER_REQ_DB, Dataset.Customer_Header_dc.NX_SHORT_TERM_DB, Dataset.Customer_Header_dc.NX_COST_CODE, 
                          Dataset.Filter_Customer(Dataset.Customer_Header_dc.MIG_SITE_NAME, 'dc', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), Dataset.Customer_Header_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE) AS NX_FILTER_STATUS, 
-                         Dataset.Customer_Header_dc.NX_BR_ORDER_TYPE, Dataset.Customer_Header_dc.NX_BR_BLOCKED_DD, Dataset.Customer_Header_dc.NX_BR_CONSOLIDATION, Dataset.Customer_Header_dc.NX_LEGAL_ENTITY_DB
+                         Dataset.Customer_Header_dc.NX_BR_ORDER_TYPE, Dataset.Customer_Header_dc.NX_BR_BLOCKED_DD, Dataset.Customer_Header_dc.NX_BR_CONSOLIDATION, Dataset.Customer_Header_dc.NX_LEGAL_ENTITY_DB, 
+                         Dataset.Customer_Header_dc.NX_IMPORT_ACCOUNT
 FROM            Dataset.Customer_Header_dc LEFT OUTER JOIN
                          Dataset.Customer_Filter_Override ON Dataset.Customer_Header_dc.MIG_SITE_NAME = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND 
                          Dataset.Customer_Header_dc.CUSTOMER_ID = Dataset.Customer_Filter_Override.CUSTOMER_ID
@@ -72,7 +73,7 @@ Begin DesignProperties =
       End
       Begin PaneConfiguration = 8
          NumPanes = 3
-         Configuration = "(H (1[44] 4[30] 2) )"
+         Configuration = "(H (1[50] 4[25] 2) )"
       End
       Begin PaneConfiguration = 9
          NumPanes = 2
@@ -102,7 +103,7 @@ Begin DesignProperties =
    End
    Begin DiagramPane = 
       Begin Origin = 
-         Top = 0
+         Top = -192
          Left = 0
       End
       Begin Tables = 
@@ -114,7 +115,7 @@ Begin DesignProperties =
                Right = 306
             End
             DisplayFlags = 280
-            TopColumn = 50
+            TopColumn = 51
          End
          Begin Table = "Customer_Filter_Override (Dataset)"
             Begin Extent = 

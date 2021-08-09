@@ -11,7 +11,8 @@ CREATE TABLE [Dataset].[LOV]
 [IsMigrationField] [bit] NOT NULL CONSTRAINT [DF_LOV_IsMigrationField] DEFAULT ((0)),
 [IsIfsGlobal] [bit] NOT NULL CONSTRAINT [DF_LOV_IsIfsGlobal] DEFAULT ((0)),
 [IFS_Value_LastSynch] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[IsNew] [bit] NOT NULL CONSTRAINT [DF_LOV_IsNew] DEFAULT ((1))
+[IsNew] [bit] NOT NULL CONSTRAINT [DF_LOV_IsNew] DEFAULT ((1)),
+[isRecycleArchive] [bit] NOT NULL CONSTRAINT [DF_LOV_isRecycleArchive] DEFAULT ((0))
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[LOV] ADD CONSTRAINT [PK_Rule_LOV_Text] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

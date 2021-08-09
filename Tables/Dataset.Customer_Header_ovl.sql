@@ -135,7 +135,8 @@ CREATE TABLE [Dataset].[Customer_Header_ovl]
 [BR_ORDER_TYPE] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BR_BLOCKED_DD] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BR_CONSOLIDATION] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[LEGAL_ENTITY_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[LEGAL_ENTITY_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[IMPORT_ACCOUNT] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[Customer_Header_ovl] ADD CONSTRAINT [PK_Customer_Header_ovl] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

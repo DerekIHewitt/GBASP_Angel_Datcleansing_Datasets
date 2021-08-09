@@ -25,7 +25,7 @@ SELECT        Dataset.Customer_Header_DcEx.ID, Dataset.Customer_Header_DcEx.MIG_
                          Dataset.Customer_Header_DcEx.NX_SAGE_CODE, Dataset.Customer_Header_DcEx.NX_OLD_CUST_REF1, Dataset.Customer_Header_DcEx.NX_OLD_CUST_REF2, Dataset.Customer_Header_DcEx.NX_BOOK_IN_DB, 
                          Dataset.Customer_Header_DcEx.NX_NO_LIMIT_DB, Dataset.Customer_Header_DcEx.NX_ON_SITE_RA_DB, Dataset.Customer_Header_DcEx.NX_PURCHASE_ORDER_REQ_DB, 
                          Dataset.Customer_Header_DcEx.NX_SHORT_TERM_DB, Dataset.Customer_Header_DcEx.NX_COST_CODE, Dataset.Customer_Header_DcEx.NX_BR_ORDER_TYPE, Dataset.Customer_Header_DcEx.NX_BR_BLOCKED_DD, 
-                         Dataset.Customer_Header_DcEx.NX_BR_CONSOLIDATION, Dataset.Customer_Header_DcEx.NX_LEGAL_ENTITY_DB
+                         Dataset.Customer_Header_DcEx.NX_BR_CONSOLIDATION, Dataset.Customer_Header_DcEx.NX_LEGAL_ENTITY_DB, Dataset.Customer_Header_DcEx.NX_IMPORT_ACCOUNT
 FROM            Dataset.Customer_Header_DcEx LEFT OUTER JOIN
                          Dataset.Customer_Filter_Override ON Dataset.Customer_Header_DcEx.MIG_SITE_NAME = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND 
                          Dataset.Customer_Header_DcEx.CUSTOMER_ID = Dataset.Customer_Filter_Override.CUSTOMER_ID
