@@ -19,3 +19,5 @@ ALTER TABLE [Dataset].[LOV] ADD CONSTRAINT [PK_Rule_LOV_Text] PRIMARY KEY CLUSTE
 GO
 CREATE NONCLUSTERED INDEX [IX_Rule_LOV_Text_Code] ON [Dataset].[LOV] ([MIG_SITE_NAME], [LOV_DataType], [LOV_DataField], [LOV_LegacyValue]) ON [PRIMARY]
 GO
+EXEC sp_addextendedproperty N'MS_Description', N'Entrys with ''NEXUS'' are ''template'' entrys to list the fields that are known LOV fields. Entrys marked ''{IFS}'' are datatype/field/values that are valid entrys for the teritory.', 'SCHEMA', N'Dataset', 'TABLE', N'LOV', 'COLUMN', N'MIG_SITE_NAME'
+GO

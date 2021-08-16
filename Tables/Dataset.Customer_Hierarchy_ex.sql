@@ -9,7 +9,8 @@ CREATE TABLE [Dataset].[Customer_Hierarchy_ex]
 [LEVEL_ID] [int] NOT NULL,
 [LEVEL_NAME] [nvarchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [PARENT_CUST_ID] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-[CHILD_CUST_ID] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL
+[CHILD_CUST_ID] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[ACCOUNT_GROUP] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Hierarchy_ex_ACCOUNT_GROUP] DEFAULT ('')
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[Customer_Hierarchy_ex] ADD CONSTRAINT [PK_Customer_Hierarchy_ex] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

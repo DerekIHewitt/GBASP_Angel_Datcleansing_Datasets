@@ -5,10 +5,10 @@ GO
 CREATE VIEW [DatasetProWat].[Customer_Address_ex_Filtered]
 AS
 SELECT        'GBASP' AS MIG_SITE_NAME, '' AS MIG_COMMENT, getdate() AS MIG_CREATED_DATE, TRIM(CONVERT(varchar(20), CUS_Account)) AS CUSTOMER_ID, Dataset.[ConvertMaxLenCleanString](CUS_Company, '', 100) AS [NAME], 
-                         CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '''', 35),'') = '' THEN CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '''', 35), '.') 
-                         = '' THEN '.' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '''', 35), '.') END ELSE Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '''', 35) END AS ADDRESS1, 
-                         CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '''', 35),'') = '' THEN '' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '''', 35), '') END AS ADDRESS2, 
-                         Dataset.[ConvertMaxLenCleanString](CUS_PCode, '''', 35) AS ZIP_CODE, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr3, '''', 35), '{NULL}') AS CITY, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_County, '''', 35), 
+                         CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35), '') = '' THEN CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '.') 
+                         = '' THEN '.' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '.') END ELSE Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35) END AS ADDRESS1, 
+                         CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35), '') = '' THEN '' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '') END AS ADDRESS2, 
+                         Dataset.[ConvertMaxLenCleanString](CUS_PCode, '''', 35) AS ZIP_CODE, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr3, '', 35), '{NULL}') AS CITY, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_County, '', 35), 
                          '') AS COUNTY, '' AS [STATE], '' AS VAT_NO, ISNULL(Dataset.[ConvertMaxLenCleanString](TRIM(CUS_Instruct1) + CASE WHEN trim(isnull(CUS_Instruct2, '')) <> '' THEN ' ' + trim(CUS_Instruct2) 
                          ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct3, '')) <> '' THEN ' ' + trim(CUS_Instruct3) ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct4, '')) <> '' THEN ' ' + trim(CUS_Instruct4) 
                          ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct5, '')) <> '' THEN ' ' + trim(CUS_Instruct5) ELSE '' END, '''', 1000), '') AS SPECIAL_INS, '' AS WORK_ORDER_NOTES, '' AS NX_DELIVERY_COUNTRY_DB, 
@@ -31,7 +31,7 @@ Begin DesignProperties =
    Begin PaneConfigurations = 
       Begin PaneConfiguration = 0
          NumPanes = 4
-         Configuration = "(H (1[41] 4[20] 2[29] 3) )"
+         Configuration = "(H (1[18] 4[27] 2[46] 3) )"
       End
       Begin PaneConfiguration = 1
          NumPanes = 3

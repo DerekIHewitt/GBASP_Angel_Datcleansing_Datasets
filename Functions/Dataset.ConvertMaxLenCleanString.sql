@@ -32,7 +32,7 @@ BEGIN
    WHILE @increment <= DATALENGTH(@SourceString)
         BEGIN
 			SET @badChar = SUBSTRING(@SourceString, @increment, 1);
-            IF		(ASCII(@badChar) < 32)		-- 32=space, 9=tab, 10=LF, 13=CR, etc.
+            IF	(	(ASCII(@badChar) < 32)	 OR (ASCII(@badChar) > 127))	-- 32=space, 9=tab, 10=LF, 13=CR, etc.
 				OR  (@badChar = '|')			-- Pipe always invalid when you use pipe delimited files.	
 				BEGIN
 					SET @SourceString = REPLACE(@SourceString, @badChar, ' ');	-- Convert to space
