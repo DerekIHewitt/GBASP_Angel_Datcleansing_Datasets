@@ -13,6 +13,7 @@ GO
 --RYFE	       19-02-2021	Created based on GBASP Data Cleansing ServiceContract_Raw_SendForTransform
 --RISM         11-06-2021   Maint price needs to be divided by same rules as the service freq rules are applied, so finalmaintprice has been amended 
 --RISM		   14-06-2021   Elevy needs to be ELMONTH for EL_SPAN  = 'M' and ELANNUAL for EL_SPAN = 'Y'. price needed to have same rules as maint price above so if elannual divide by 12
+--RYFE         20-08-2021   CHanges done to the COMPETIT join after Validation Checks
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -555,9 +556,19 @@ SET NOCOUNT ON;
 						 ''																					AS ORIGINAL_CONTRACT_NUMBER, 
 						 ''																					AS ORIGINAL_END_DATE, 
 						 ''																					AS ORIGINAL_START_DATE, 
-						 CASE WHEN ISNULL(EQH_Contract_Pd1,0) = 0 THEN ''
-						 ELSE REPLACE(DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
+
+						 CASE WHEN CONVERT(varchar, ISNULL(EQH_Contract_Pd1,0)) = '0' THEN ''
+						 ELSE
+						 CASE WHEN 
+						 DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
+						 ,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)) = 0 THEN REPLACE(DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
 						 ,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)),0,'')
+						 ELSE 
+						CONVERT(varchar, DATEDIFF(MONTH,DatasetProWat.CONVERTFROMCLARION(EQH_Start_Date)
+						 ,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)))
+						 END
+
+
 						 END																				AS CONTRACT_TERM,
 						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) = '1800-12-28'
 						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate), '1800-12-28', NULL) 
@@ -831,7 +842,7 @@ END AS  FINALMAINTPRICE																							--RISM         11-06-2021 REPLACES
 ,ET.ety_name
 from      DatasetProWat.Syn_EquipHdr_ex EQ
 	 join DatasetProWat.Syn_Customer_ex C          on C.CUS_ACCOUNT = EQ.EQH_ACCOUNT
-	 join DatasetProWat.Syn_Competit_ex acq        on acq.cmp_id = c.cus_acqfrom
+	 left join DatasetProWat.Syn_Competit_ex acq   on acq.cmp_id = c.cus_acqfrom
 	 join DatasetProWat.Syn_Stock_ex  ST         on st.sto_stock_code = eq.eqh_stock_code
 	 join DatasetProWat.Syn_EQTYPE_ex ET         on et.ety_id = st.sto_eqtype
 
@@ -1031,21 +1042,8 @@ CONCAT(
   
   )A
 
- LEFT OUTER JOIN
-                         Dataset.SerialObject_Filter_Override 
-						 LEFT OUTER JOIN
-                         Dataset.SerialObject_ex ON 
-						 Dataset.SerialObject_Filter_Override.MIG_SITE_NAME = Dataset.SerialObject_ex.MIG_SITE_NAME 
-						 AND Dataset.SerialObject_Filter_Override.MCH_CODE = Dataset.SerialObject_ex.MCH_CODE ON 
-                         'GBASP' = Dataset.SerialObject_ex.MIG_SITE_NAME AND EQH_IDNo = Dataset.SerialObject_ex.MCH_CODE 
-						 LEFT OUTER JOIN
-                         Dataset.Customer_Filter_Override 
-						 LEFT OUTER JOIN
-                         Dataset.Customer_Header_ex ON 
-						 Dataset.Customer_Filter_Override.MIG_SITE_NAME = Dataset.Customer_Header_ex.MIG_SITE_NAME AND 
-                         Dataset.Customer_Filter_Override.CUSTOMER_ID = Dataset.Customer_Header_ex.CUSTOMER_ID 
-						 ON 'GBASP' = Dataset.Customer_Header_ex.MIG_SITE_NAME AND 
-                         CUS_Account = Dataset.Customer_Header_ex.CUSTOMER_ID
+ LEFT OUTER JOIN Dataset.SerialObject_Filter_Override  ON 'GBASP' = Dataset.SerialObject_Filter_Override.MIG_SITE_NAME AND A.EQH_IDNo = Dataset.SerialObject_Filter_Override.MCH_CODE
+ LEFT JOIN Dataset.Customer_Filter_Override ON Dataset.Customer_Filter_Override.MIG_SITE_NAME = 'GBASP' AND Dataset.Customer_Filter_Override.CUSTOMER_ID = A.CUS_Account
 
   WHERE 
   --CUS_TYPE NOT LIKE ('STOCK%')
@@ -1058,11 +1056,10 @@ CONCAT(
   --AND MATRIX_TYPE LIKE 'NEW CONTRACT'
 
   AND 
-						(Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), 
-                         ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), Dataset.SerialObject_ex.NX_OPERATIONAL_STATUS, CUS_Type, Dataset.Filter_Customer('GBASP', 'ex', 
-                         ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), CUS_Account, 
-                         Dataset.Customer_Header_ex.NAME, Dataset.Customer_Header_ex.CRM_ACCOUNT_TYPE)) > 0) AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), 
-                         ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), CUS_Account, Dataset.Customer_Header_ex.NAME, CUS_Type) > 0) 
+  (Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), '', ISNULL(A.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 'ex', 
+                         ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), A.CUS_Account, 
+                         LEFT(TRIM(A.CUS_Company), 100), ISNULL(A.CUS_Type, '{NULL}'))) > 0)
 
 
   END
