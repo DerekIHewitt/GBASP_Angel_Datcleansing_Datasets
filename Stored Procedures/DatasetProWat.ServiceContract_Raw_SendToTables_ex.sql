@@ -235,7 +235,7 @@ SET NOCOUNT ON;
 						 DatasetProWat.CONVERTFROMCLARION(EQH_DUE_INV)), 0),103) , '1900-01-01', '')
 						 END																				AS BILLING_IFS_FROM_DATE, -- This needs to be  first of the month
 
-						 ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN RentSpan 
 						 ELSE EQH_M_SPAN END, 0)															AS RENT_UNIT,
 						 
@@ -243,67 +243,67 @@ SET NOCOUNT ON;
 						 
 						 
 						 ISNULL(
-						 CASE WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 CASE WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '3M' 
 						 THEN 4 
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '13W' 
 						 THEN 4
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '13' 
 						 THEN 4
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '13M' 
 						 THEN 4
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '6M' 
 						 THEN 2 
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '6' 
 						 THEN 2
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '6W' 
 						 THEN 2
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '26W'
 						 THEN 2
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '12W'											--Recheck for 12W
 						 THEN 4.33
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '12M' 
 						 THEN 1
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '52W'
 						 THEN 1
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '1Y' 
 						 THEN 1 
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '3'
 						 THEN 4
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '3W'
 						 THEN 4
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '1M' 
 						 THEN 12
-						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 THEN 0 ELSE 1 END) = 0 
+						 WHEN CONCAT(Rental_Frequency_inv, ISNULL(CASE WHEN (CASE WHEN MAINTenance_FREQuency = 0 OR MATRIX_TYPE = 'MIF - Rental Only Recurring Sani/Service' THEN 0 ELSE 1 END) = 0 
 						 THEN EQH_I_SPAN 
 						 ELSE EQH_M_SPAN END, 0)) = '1W' 
 						 THEN 52 

@@ -81,11 +81,11 @@ SET NOCOUNT ON;
 		
 		LEFT OUTER JOIN
         Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), CUS.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
-		WHERE (Dataset.Filter_Customer('GBASP', 'dc', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+		WHERE (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), CUS.CUS_Account)), LEFT(TRIM(CUS.CUS_Company), 100), ISNULL(CUS.CUS_Type, '{NULL}')) > 0)
 
 		AND isnull(CUS_CUSTORDER,'') != '' OR isnull(CUS_PORENT,'') != '' OR isnull(CUS_POSANI,'') != '' OR isnull(CUS_POEL,'') != ''
-		AND CUS_TYPE NOT LIKE 'CANC%' AND CUS_TYPE NOT LIKE 'STOCK'
+		--AND CUS_TYPE NOT LIKE 'CANC%' AND CUS_TYPE NOT LIKE 'STOCK'
 
 
 END

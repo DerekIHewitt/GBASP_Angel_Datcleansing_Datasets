@@ -21,6 +21,7 @@ GO
 --9 RISM 2021-07-07 Previous rule joined the sagetran by invoice accounts. request was to join to delivery account link only
 -10 RISM 2021-07-13 Requested to reduce points 5 & 6 down to 12 months
 -11 RISM 2021-07-13 Changed the sagetran join got link to the delivery account to sag_delacct and the invoice account to sag_account to pull the right balance at delivery level
+-12 RISM 2021-08-25 Removed --> AND  C.CUS_ACCOUNT > 90 due to internal accounts non stock needing to be included
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Header_Filter_SendToTables_ex]
 
@@ -122,7 +123,7 @@ on O.ord_account = c.cus_account
 
 GROUP BY C.CUS_ACCOUNT, C.CUS_TYPE,C.CUS_CREATED,O.ORDERNUM,S.SAG_UNPAID,O.RequestDate,o.OrderStatus, c.cus_acct_to_inv,inv.INVOICE, c.cus_pricebookac, [key].[key],C.CUS_COMPANY--,S.SAG_TRANDATE,S.SAG_UNPAID,   ,E.EQH_ID,
 HAVING C.CUS_TYPE NOT LIKE 'STOCK'
-AND  C.CUS_ACCOUNT > 90
+--AND  C.CUS_ACCOUNT > 90
 
 END
 
