@@ -7,6 +7,7 @@ GO
 
 
 
+
 CREATE VIEW [DatasetProWat].[Open_Work_Orders_ex_Filtered]
 AS
 
@@ -15,7 +16,7 @@ select distinct
 ,'1000' AS COMPANY
 ,'UK300' AS WO_SITE
 , ORR_DESCRIPTION AS DIRECTIVE  --will need to relate to work type description
-,CONCAT('"'+O.ORD_Instruct1,O.ORD_Instruct2,O.ORD_Instruct3,O.ORD_Instruct4,O.ORD_Instruct5+'"') AS FAULT_DESC
+,CONCAT('"'+'Legacy Wo No: '+convert(varchar,o.ord_ordernum) +' ' +'Instructions: '+O.ORD_Instruct1,O.ORD_Instruct2,O.ORD_Instruct3,O.ORD_Instruct4,O.ORD_Instruct5+'"') AS FAULT_DESC
 ,DBO.CONVERTFROMCLARION(ORD_REQUEST_DATE) AS START_DATE
 ,'' AS PLAN_FINISH
 ,'' as PLAN_HRS

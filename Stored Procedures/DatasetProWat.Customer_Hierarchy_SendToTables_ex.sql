@@ -10,6 +10,7 @@ GO
   Author:      RYFE
   Description: Retrieve Customer Hierarchy details
 --			   RYFE 2021-08-06 Created based on GBASP Data Cleansing customer contact send for transform
+-- 2           RISM 2021-09-02 Changed the code as was limited by account group. No longer the driver, price book is the driver now
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Hierarchy_SendToTables_ex]
 AS
@@ -27,12 +28,15 @@ SET NOCOUNT ON;
 	---------------- Add records to the loading table ---------------------------------------------------------
 	
 	SELECT 
-	c.cus_acgroup,														--Account group. Give each account group its own unique Customer record. 
-	left(trim(ISNULL(ac.cus_company, '')),35) AS Key_Acct_name,						--Account group. Take this description 
-	c.cus_pricebookac AS Key_Acct,										--LEVAL 1. This is the price book , this is the pure Prowat number to get the information  from legacy
+
+    c.cus_pricebookac AS Key_Acct,										--LEVEL 1. This is the price book , this is the pure Prowat number to get the information  from legacy													--Account group. Give each account group its own unique Customer record. 
+	left(trim(ISNULL(ac.cus_company, '')),35) AS Key_Acct_name,			--Account group. Take this description 
 	c.cus_account AS Del_Acct,											--LEVEL 2. No manipulation needed here, just pull the IFS customer ID as is
-	left(trim(c.cus_company),35) AS cus_company,
+	left(trim(c.cus_company),35) AS cus_company,						--Delivery account description
+	(case when C.cus_acgroup = 0 then '' else cast(C.cus_acgroup as varchar(30)) end) as cus_acgroup,	    --Account group. Is a referenced item at delivery account level
 	c.cus_type
+
+
 	
 	INTO #RECS
 	FROM DatasetProWat.Syn_Customer_ex C
@@ -45,7 +49,8 @@ SET NOCOUNT ON;
     --Dataset.Customer_Filter_Override HR ON 'GBASP' = HR.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), AC.cus_account)) = HR.CUSTOMER_ID
 
 	WHERE
-	c.cus_acgroup NOT LIKE 0
+	--c.cus_acgroup NOT LIKE 0  --RS 02/09/21 Doesn't matter whether there is an account group or not. incidental information
+	c.cus_pricebookac NOT LIKE 0 --RS 02/09/21 We now only want hierarchy information IF a Prowat account has a valid key account linked to it. This will become level 1
 	AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.cus_account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
@@ -56,9 +61,9 @@ SET NOCOUNT ON;
 																		--NOTE. Where the key account LEVEL 1 is zero, indicating that the delivery account uses itself for pricing, the delivery account takes the place of zero and becomes LEVEL 1. 
 	
   
-	UPDATE #RECS
-	SET Key_Acct = Del_Acct, Del_Acct = '',Key_Acct_name = cus_company
-	WHERE Key_Acct is null OR Key_Acct = 0;
+	--UPDATE #RECS
+	--SET Key_Acct = Del_Acct, Del_Acct = '',Key_Acct_name = cus_company
+	--WHERE Key_Acct is null OR Key_Acct = 0;
 
 	INSERT into	[Dataset].[Customer_Hierarchy_ex] 
 		(  [MIG_SITE_NAME]
@@ -83,13 +88,14 @@ SET NOCOUNT ON;
 		'Price Book'				AS [LEVEL_NAME],
 		'*'							AS [PARENT_CUST_ID],
 		Key_Acct					AS [CHILD_CUST_ID],
-		cus_acgroup					AS [ACCOUNT_GROUP]			--Cannot have this because multiple account groups can be there for the same price book
+		case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]			--Cannot have this because multiple account groups can be there for the same price book
 
       
 		FROM	#RECS cus
-		WHERE   Del_Acct = ''
+		--WHERE   Del_Acct = ''
+		WHERE Key_Acct is not null
 
-	INSERT into	[Dataset].[Customer_Hierarchy_ex]
+	/*INSERT into	[Dataset].[Customer_Hierarchy_ex]
 		(  [MIG_SITE_NAME]
       ,[MIG_COMMENT]
       ,[MIG_CREATED_DATE]
@@ -118,7 +124,7 @@ SET NOCOUNT ON;
 		FROM	#RECS cus
 		WHERE   Del_Acct != ''
 		AND not exists (select 1 from [Dataset].[Customer_Hierarchy_ex] v where v.[HIERARCHY_ID] = cus.Key_Acct and v.mig_site_name = @MIG_SITENAME )
-
+		*/
 		
 
 		INSERT into	[Dataset].[Customer_Hierarchy_ex] 
@@ -144,8 +150,7 @@ SET NOCOUNT ON;
 		'Delivery Account'			AS [LEVEL_NAME],
 		Key_Acct					AS [PARENT_CUST_ID],
 		Del_Acct					AS [CHILD_CUST_ID],
-		cus_acgroup				    AS [ACCOUNT_GROUP]
-
+		case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]				   
 		FROM	#RECS cus
 		WHERE Del_Acct != ''
 		
