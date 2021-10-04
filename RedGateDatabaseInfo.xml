@@ -59,6 +59,17 @@
     <DataWriteAllFilesInOneDirectory>True</DataWriteAllFilesInOneDirectory>
   </WriteToFileOptions>
   <DataFileSet>
-    <Count>0</Count>
+    <Count>11</Count>
+    <DataFile>Dataset.LOV_Data.sql</DataFile>
+    <DataFile>DatasetSys.FilterMode_Data.sql</DataFile>
+    <DataFile>DatasetSys.Rule_Custom_Data.sql</DataFile>
+    <DataFile>DatasetSys.Rule_PartB_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysIteration_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysLookup_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysMigCodes_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysSynonym_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysSynonym_Control_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysSynonym_UpdateScripts_Data.sql</DataFile>
+    <DataFile>DatasetSys.sysVersion_Data.sql</DataFile>
   </DataFileSet>
 </DatabaseInformation>

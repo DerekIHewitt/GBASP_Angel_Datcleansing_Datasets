@@ -1,0 +1,4 @@
+INSERT INTO [DatasetSys].[sysVersion] ([ID], [MIG_SITE_NAME], [VersionLevel], [Version], [Comment]) VALUES (1, '', 0, 1, 'This is the current ''structure'' version of this DataCleansing database.')
+INSERT INTO [DatasetSys].[sysVersion] ([ID], [MIG_SITE_NAME], [VersionLevel], [Version], [Comment]) VALUES (110100, '', 1, 13, 'DATABASE iteration number (reporting iteration is the same as period, batch, version , phase...)')
+INSERT INTO [DatasetSys].[sysVersion] ([ID], [MIG_SITE_NAME], [VersionLevel], [Version], [Comment]) VALUES (110110, '', 2, 1, 'REPORTING iteration number (Each set of DataDefect_Totals belongs to a reporting iteration.)')
+INSERT INTO [DatasetSys].[sysVersion] ([ID], [MIG_SITE_NAME], [VersionLevel], [Version], [Comment]) VALUES (110120, '', 3, 1, 'ITERATION Find Data Defect iteration number (Each time a find defective data routine is run, it saves its output connected to the current DataDefect number)')
