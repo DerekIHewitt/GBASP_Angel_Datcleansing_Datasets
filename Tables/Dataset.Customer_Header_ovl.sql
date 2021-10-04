@@ -68,6 +68,7 @@ CREATE TABLE [Dataset].[Customer_Header_ovl]
 [SRC_PURCHASE_ORDER_REQ_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_SHORT_TERM_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_COST_CODE] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_ACCOUNT_GROUP] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [NAME] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PAY_TERM_ID] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CREDIT_LIMIT] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -136,7 +137,8 @@ CREATE TABLE [Dataset].[Customer_Header_ovl]
 [BR_BLOCKED_DD] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [BR_CONSOLIDATION] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [LEGAL_ENTITY_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[IMPORT_ACCOUNT] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[IMPORT_ACCOUNT] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[ACCOUNT_GROUP] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[Customer_Header_ovl] ADD CONSTRAINT [PK_Customer_Header_ovl] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

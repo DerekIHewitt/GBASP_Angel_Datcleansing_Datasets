@@ -21,6 +21,7 @@ GO
 --                             a DMEmail value but we have no DMName value as per Safeena, UK business rule only 
 --			   RJS 2021-01-11  Added specifics to point [5) send final set of records for transform] as source table has migrated date columns need to specify the column list otherwise proc fails
 --			   RYFE 2021-02-19 Created based on GBASP Data Cleansing customer contact send for transform
+--             RYFE 2021-09-13 Added new rules based on Lisas comments
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Contact_SendToTables_ex]
 AS
@@ -134,9 +135,9 @@ SET NOCOUNT ON;
 			  ''						AS [MIG_COMMENT],
 			  GETDATE()					AS [MIG_CREATED_DATE],
 			  CUS.CUS_ACCOUNT			AS CUSTOMER_ID,
-			  ''						AS FIRST_NAME,
+			  'Decision'				AS FIRST_NAME,
 			  ''						AS MIDDLE_NAME,
-			  'CONTACT'					AS LAST_NAME,
+			  'Maker'					AS LAST_NAME,
 			  '3' 						AS NX_PERSON_ID,			-- Derive IFS PERSON_ID by prefixing the IFS_CUSTOMER_ID with '1' , done later in transform
 			  TRIM([DatasetProWat].[CleanString](ext.TITLE))			AS NX_TITLE,
 			  
@@ -151,8 +152,35 @@ SET NOCOUNT ON;
         Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), CUS.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
 		WHERE        (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), CUS.CUS_Account)), LEFT(TRIM(CUS.CUS_Company), 100), ISNULL(CUS.CUS_Type, '{NULL}')) > 0)
-		AND		    cus.CUS_DMEmail <> ''
+		AND		    (cus.CUS_DMPhone <> '' OR cus.CUS_DMFax <> '' OR cus.CUS_DMMob <> '')
 			AND     cus.CUS_ACCOUNT NOT IN (SELECT CUSTOMER_ID FROM #RECS WHERE NX_PERSON_ID = 3) -- don't already have a DM type contact
+
+	INSERT INTO #RECS
+		SELECT
+			  @MIG_SITENAME				AS MIG_SITE_NAME,
+			  ''						AS [MIG_COMMENT],
+			  GETDATE()					AS [MIG_CREATED_DATE],
+			  CUS.CUS_ACCOUNT			AS CUSTOMER_ID,
+			  'AR'						AS FIRST_NAME,
+			  ''						AS MIDDLE_NAME,
+			  'CONTACT'					AS LAST_NAME,
+			  '2' 						AS NX_PERSON_ID,			-- Derive IFS PERSON_ID by prefixing the IFS_CUSTOMER_ID with '1' , done later in transform
+			  TRIM([DatasetProWat].[CleanString](ext.TITLE))			AS NX_TITLE,
+			  
+			  ''						AS NX_ROLE_DB,		-- held in CUS_position1 on PROWAT
+			  'FALSE'					AS NX_CUSTOMER_PRIMARY,	-- default
+			  'FALSE'					AS NX_CUSTOMER_SECONDARY,	-- default
+			  '1'						AS NX_CUSTOMER_ADDRESS_ID,	-- default
+			  'FALSE'                   AS NX_CUSTOMER_ADDRESS_PRIMARY -- new field added ARG 2020-02-19
+		FROM		DatasetProWat.Syn_Customer_ex cus
+		CROSS APPLY DatasetProWat.ExtractNameParts(cus.CUS_DMName) AS ext
+		LEFT OUTER JOIN
+        Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), CUS.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
+		WHERE        (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), CUS.CUS_Account)), LEFT(TRIM(CUS.CUS_Company), 100), ISNULL(CUS.CUS_Type, '{NULL}')) > 0)
+		AND		   ( cus.CUS_Tel2 <> '' OR cus.CUS_Fax2 <> '')
+		--AND         [DatasetProWat].[Filter_Customer_Contact] (cus.CUS_Contact2) != 1
+			AND     cus.CUS_ACCOUNT NOT IN (SELECT CUSTOMER_ID FROM #RECS WHERE NX_PERSON_ID = 2) -- don't already have a AR contact type contact
 
 	-- 1) get table with the duplicates in
 

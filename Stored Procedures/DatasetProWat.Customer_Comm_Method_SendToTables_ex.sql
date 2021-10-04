@@ -23,6 +23,7 @@ GO
 --  6    RJS	01/11/2021  Added specific column list to fix proc error
 --  7    RJS	03/02/2021  Procedure failed on NULL so catered for isnull in intial SELECT INTO
 --		 RYFE	19-02-2021	Created based on GBASP Data Cleansing Customer_Comm_Method_SendForTransform
+--       RYFE 2021-09-13 Added new rules based on Lisas comments
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Comm_Method_SendToTables_ex]
 --(
@@ -66,6 +67,8 @@ SET NOCOUNT ON;
 																			AS CUS_DMEmail,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMFax))	AS CUS_DMFax,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMPhone))	AS CUS_DMPhone,
+		  TRIM([DatasetProWat].[CleanString](CUS_Mobile1))	AS CUS_Mobile1,							--13/09/2021 RYFE added according to latest rules
+		  TRIM([DatasetProWat].[CleanString](CUS_Mobile2))	AS CUS_Mobile2,							--13/09/2021 RYFE added according to latest rules
 		  TRIM([DatasetProWat].[CleanString](CUS_DMMob))	AS CUS_DMMob,
 		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Ext1)),'')	AS CUS_Ext1,
 		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Ext2)),'')	AS CUS_Ext2,
@@ -254,7 +257,7 @@ SET NOCOUNT ON;
 		  7						AS [COMM_ID],
 		  CASE WHEN TRIM(CUS_DMName) <> ''		   -- we have something in the name so use it and add suffix
 				THEN TRIM(CUS_DMName) + ' (DM)'	   -- introduced suffix so we can make sure this is inserted (name/method cannot be duplicated) ARG 24/03/2020
-				ELSE 'DM'						   -- nothing in name so just put in suffix to use later				
+				ELSE 'Decision Maker'			   -- nothing in name so just put in suffix to use later				
 		  END					AS [COMM_NAME],    -- All DM's linked to DMName
 		  'DMEmail'				AS [COMM_DESCRIPTION],
 		  'E_MAIL'				AS [METHOD_ID_DB],
@@ -263,7 +266,7 @@ SET NOCOUNT ON;
 		  ''					AS [ADDRESS_ID],
 		  ''					AS [ADDRESS_DEFAULT],
 		  ''					AS [EXT_NO],
-		  ''					AS [POD_EMAIL_DB]
+		  'TRUE'				AS [POD_EMAIL_DB]
 		FROM	#tmpCustomers
 		WHERE	ISNULL(CUS_DMEmail,'') <> ''
 		--  AND ISNULL(CUS_DMEmail,'') <> ISNULL(CUS_Email1,'') -- removed checking for duplicates, if they exist we want them brought over even if the same ARG 28/02/2020
@@ -331,8 +334,73 @@ SET NOCOUNT ON;
 		--  AND ISNULL(CUS_DMFax,'') <> ISNULL(CUS_Fax,'')  -- removed checking for duplicates, if they exist we want them brought over even if the same ARG 28/02/2020
 		--  AND ISNULL(CUS_DMFax,'') <> ISNULL(CUS_Fax2,'') -- removed checking for duplicates, if they exist we want them brought over even if the same ARG 28/02/2020
 
+-- 13/09/2021 RYFE added acording to new rules - START
 
+	UNION ALL
 
+		SELECT
+		  @MIG_SITENAME			AS MIG_SITE_NAME,
+		  'CUSTOMER'			AS [PARTY_TYPE_DB],
+		  --IFS_CUSTOMER_ID		AS [IDENTITY],
+		  CUS_Account			AS [IDENTITY],
+		  10					AS [COMM_ID],
+		  TRIM(CUS_Contact1)	AS [COMM_NAME],        -- All 1'S linked to Contact1
+		  'Mobile1'				AS [COMM_DESCRIPTION],
+		  'MOBILE'				AS [METHOD_ID_DB],
+		  TRIM(CUS_Mobile1)			AS [COMM_METHOD_VALUE],
+		  ''					AS [DEFAULT_PER_METHOD],
+		  ''					AS [ADDRESS_ID],
+		  ''					AS [ADDRESS_DEFAULT],
+		  ''					AS [EXT_NO],
+		  ''					AS [POD_EMAIL_DB]
+		FROM	#tmpCustomers
+		WHERE ISNULL(CUS_Mobile1,'') <> ''
+
+	UNION ALL
+
+	SELECT
+		  @MIG_SITENAME			AS MIG_SITE_NAME,
+		  'CUSTOMER'			AS [PARTY_TYPE_DB],
+		  --IFS_CUSTOMER_ID		AS [IDENTITY],
+		  CUS_Account			AS [IDENTITY],
+		  11						AS [COMM_ID],
+		  TRIM(CUS_Contact2)	AS [COMM_NAME],        -- All 2'S linked to Contact2
+		  'Mobile2'				AS [COMM_DESCRIPTION],
+		  'MOBILE'				AS [METHOD_ID_DB],
+		  TRIM(CUS_Mobile2)		AS [COMM_METHOD_VALUE],
+		  ''					AS [DEFAULT_PER_METHOD],
+		  ''					AS [ADDRESS_ID],
+		  ''					AS [ADDRESS_DEFAULT],
+		  ''					AS [EXT_NO],
+		  ''					AS [POD_EMAIL_DB]
+		FROM	#tmpCustomers
+		WHERE	ISNULL(CUS_Mobile2,'') <> ''
+
+	UNION ALL
+
+	SELECT
+		  @MIG_SITENAME			AS MIG_SITE_NAME,
+		  'CUSTOMER'			AS [PARTY_TYPE_DB],
+		  --IFS_CUSTOMER_ID		AS [IDENTITY],
+		  CUS_Account			AS [IDENTITY],
+		  12					AS [COMM_ID],
+		  CASE WHEN TRIM(CUS_DMName) <> ''		   -- we have something in the name so use it and add suffix
+				THEN TRIM(CUS_DMName) + ' (DM)'	   -- introduced suffix so we can make sure this is inserted (name/method cannot be duplicated) ARG 24/03/2020
+				ELSE 'Decision Maker'						   -- nothing in name so just put in suffix to use later				
+		  END					AS [COMM_NAME],    -- All DM's linked to DMName
+		  'DMMobile'				AS [COMM_DESCRIPTION],
+		  'MOBILE'					AS [METHOD_ID_DB],
+		  TRIM(CUS_DMMob)		AS [COMM_METHOD_VALUE],
+		  ''					AS [DEFAULT_PER_METHOD],
+		  ''					AS [ADDRESS_ID],
+		  ''					AS [ADDRESS_DEFAULT],
+		  ''					AS [EXT_NO],
+		  ''					AS [POD_EMAIL_DB]
+		FROM		#tmpCustomers
+		WHERE	ISNULL(CUS_DMMob,'') <> ''
+			
+
+-- 13/09/2021 RYFE added acording to new rules - FINISH
 
 	INSERT INTO [Dataset].Customer_Comm_Method_ex  --RJS 2021-11-01 Added specific column list to fix proc error
 		(  [MIG_SITE_NAME]
@@ -411,7 +479,7 @@ SET NOCOUNT ON;
 				INNER JOIN	[DatasetProWat].MAP_Contact_Comm_Method CCM  -- only where contact for the number we want
 					ON		CR.[IDENTITY] = CCM.CUS_Account  
 					AND     CCM.Contact_Type = 1         -- only want those which will link to Contact Type 1
-				WHERE		CR.COMM_ID IN (1,3,5)        -- only take those relevant to Contact Type 1
+				WHERE		CR.COMM_ID IN (1,3,5,10)        -- only take those relevant to Contact Type 1
 
 	INSERT INTO [Dataset].Customer_Comm_Method_ex
 		(	[MIG_SITE_NAME]
@@ -446,7 +514,7 @@ SET NOCOUNT ON;
 			INNER JOIN	[DatasetProWat].MAP_Contact_Comm_Method CCM  -- only where contact for the number we want
 			ON			CR.[IDENTITY] = CCM.CUS_Account  
 			AND         CCM.Contact_Type = 2         -- only want those which will link to Contact Type 2
-			WHERE		CR.COMM_ID IN (2,4,6)        -- only take those relevant to Contact Type 2
+			WHERE		CR.COMM_ID IN (2,4,6,11)        -- only take those relevant to Contact Type 2
 
 	INSERT INTO [Dataset].Customer_Comm_Method_ex
 		(	[MIG_SITE_NAME]
@@ -481,7 +549,7 @@ SET NOCOUNT ON;
 				INNER JOIN	[DatasetProWat].MAP_Contact_Comm_Method CCM  -- only where contact for the number we want
 				ON			CR.[IDENTITY] = CCM.CUS_Account  
 				AND         CCM.Contact_Type = 3         -- only want those which will link to Contact Type 3
-				WHERE		CR.COMM_ID IN (7,8,9)        -- only take those relevant to Contact Type 3
+				WHERE		CR.COMM_ID IN (7,8,9,12)        -- only take those relevant to Contact Type 3
 
 END
 

@@ -65,15 +65,17 @@ END */ END
 CASE WHEN ex.CUS_PaperInvCharge != 1 THEN 'TRUE' ELSE '' END AS NX_INVOICE_FEE, '' AS NX_PRINT_TAX_CODE_TEXT, NULL AS NX_CYCLE_PERIOD, '' AS NX_ORDER_CONF_FLAG_DB, '' AS NX_PACK_LIST_FLAG_DB, 
 '' AS NX_CATEGORY_DB, '' AS NX_SUMMARIZED_SOURCE_LINES_DB, '' AS NX_PRINT_AMOUNTS_INCL_TAX_DB, '' AS NX_CREDIT_CONTROL_GROUP_ID, '' AS NX_CUST_PRICE_GROUP_ID, Dataset.Filter_Customer('GBASP', 'ex', 
 ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(VARCHAR(100), 
-ex.CUS_Account)), LEFT(TRIM(ex.CUS_Company), 100), ISNULL(ex.CUS_Type, '{NULL}')) AS NX_FILTER_STATUS, '' AS NX_BR_ORDER_TYPE, '' AS NX_BR_BLOCKED_DD, CASE WHEN isnull(invoice_customer_info.cus_invcons, 0) 
-= 1 THEN 'ALL' /* 'Consolidate across all sites and order types'*/ WHEN isnull(invoice_customer_info.cus_inveachdel, 0) = 0 AND isnull(invoice_customer_info.cus_invcons, 0) 
-= 0 THEN 'SITE' /* 'Consolidate by sites only'*/ WHEN isnull(invoice_customer_info.cus_inveachdel, 0) = 1 AND isnull(CASE WHEN ex.cus_acct_to_inv = 0 THEN ex.cus_account ELSE ex.cus_acct_to_inv END, 0) <> 0 AND 
-isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'NONE' /* 'No Consolidation'*/ ELSE '' /* This not in RS orignal code but I think required to prevent NULLS being passed out.*/ END AS NX_BR_CONSOLIDATION, 
-REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') 
-= '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') END AS NX_IMPORT_ACCOUNT
+ex.CUS_Account)), LEFT(TRIM(ex.CUS_Company), 100), ISNULL(ex.CUS_Type, '{NULL}')) AS NX_FILTER_STATUS, '' AS NX_BR_ORDER_TYPE, '' AS NX_BR_BLOCKED_DD, CASE WHEN ex.cus_acct_to_inv != 0 AND 
+isnull(invoice_customer_info.cus_invcons, 0) = 1 THEN 'ALL' /* 'Consolidate across all sites and order types'*/ WHEN isnull(invoice_customer_info.cus_inveachdel, 0) = 0 THEN CASE WHEN ex.cus_acct_to_inv != 0 AND 
+isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'SITE' /* 'Consolidate by sites only'*/ WHEN isnull(ex.cus_acct_to_inv, 0) = 0 THEN 'SITE' END WHEN isnull(invoice_customer_info.cus_inveachdel, 0) 
+= 1 THEN CASE WHEN ex.cus_acct_to_inv != 0 AND isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'NONE' WHEN isnull(ex.cus_acct_to_inv, 0) 
+= 0 THEN 'NONE' END /* 'No Consolidation'*/ ELSE '' /* This not in RS orignal code but I think required to prevent NULLS being passed out.*/ END AS NX_BR_CONSOLIDATION, REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), 
+ex.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') 
+END AS NX_IMPORT_ACCOUNT,CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') 
+END AS NX_ACCOUNT_GROUP
 FROM            DatasetProWat.Syn_Customer_ex ex LEFT JOIN
-                         DatasetProWat.Syn_Customer_ex AS invoice_customer_info /*customer table joined to itself to pull the invoice account information, as it is its own record in customer*/ ON 
-                         CASE WHEN ISNULL(ex.cus_acct_to_inv,0) = 0 THEN ex.cus_account ELSE ex.cus_acct_to_inv END = invoice_customer_info.cus_account LEFT OUTER JOIN
+                         DatasetProWat.Syn_Customer_ex AS invoice_customer_info /*customer table joined to itself to pull the invoice account information, as it is its own record in customer*/ ON CASE WHEN ISNULL(ex.cus_acct_to_inv, 0) 
+                         = 0 THEN ex.cus_account ELSE ex.cus_acct_to_inv END = invoice_customer_info.cus_account LEFT OUTER JOIN
                          Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
 WHERE        (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)), LEFT(TRIM(ex.CUS_Company), 100), ISNULL(ex.CUS_Type, '{NULL}')) > 0)

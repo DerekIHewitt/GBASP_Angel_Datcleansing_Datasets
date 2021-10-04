@@ -27,7 +27,7 @@ SELECT        Dataset.Customer_Header_dc.ID, Dataset.Customer_Header_dc.MIG_SITE
                          Dataset.Filter_Customer(Dataset.Customer_Header_dc.MIG_SITE_NAME, 'dc', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), Dataset.Customer_Header_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE) AS NX_FILTER_STATUS, 
                          Dataset.Customer_Header_dc.NX_BR_ORDER_TYPE, Dataset.Customer_Header_dc.NX_BR_BLOCKED_DD, Dataset.Customer_Header_dc.NX_BR_CONSOLIDATION, Dataset.Customer_Header_dc.NX_LEGAL_ENTITY_DB, 
-                         Dataset.Customer_Header_dc.NX_IMPORT_ACCOUNT
+                         Dataset.Customer_Header_dc.NX_IMPORT_ACCOUNT, Dataset.Customer_Header_dc.NX_ACCOUNT_GROUP
 FROM            Dataset.Customer_Header_dc LEFT OUTER JOIN
                          Dataset.Customer_Filter_Override ON Dataset.Customer_Header_dc.MIG_SITE_NAME = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND 
                          Dataset.Customer_Header_dc.CUSTOMER_ID = Dataset.Customer_Filter_Override.CUSTOMER_ID
@@ -115,7 +115,7 @@ Begin DesignProperties =
                Right = 306
             End
             DisplayFlags = 280
-            TopColumn = 51
+            TopColumn = 52
          End
          Begin Table = "Customer_Filter_Override (Dataset)"
             Begin Extent = 

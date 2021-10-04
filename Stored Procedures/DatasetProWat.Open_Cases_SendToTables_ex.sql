@@ -68,7 +68,7 @@ UPPER(REPLACE(US.USR_USERNAME,' ','')) AS OWNER,  --SCREENSHOT 8 OF 11
 QLG_ACCOUNT				AS CUSTOMER_ID,																																					--SCREENSHOT 1 OF 11
 'UKWL'					AS CUSTOMER_SUPPORT_ORG,  --is this UKWL as per ORGANIZATION_ID
 ''						AS CALLER_EMAIL,          -- IS THIS REQUIRED TO BE POPULATED
-'GB'					AS LANG_CODE_DB
+'en'					AS LANG_CODE_DB
 ,QRE_REASON      AS SECOND_CATEGORY  -- screenshot 3 of 11 (dropwdown in ifs doesnt seem to have any values- how does this work)
 ,qlg_contname    as CONTACT_NAME       -- 6 of 11
 
@@ -123,8 +123,16 @@ LEFT JOIN (
 			[87],[88],[89],[90],[91],[92],[93],[94],[95],[96],[97],[98],[99],[100])
 			 )PVT)PVT
 			 ON PVT.QUITID = QLG.QLG_ID
+
+	    LEFT OUTER JOIN
+        Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
+		
+		
+
 WHERE [QLG_Closed] = 0 
   and [QLG_StatusID] = 42
+  AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
   UPDATE [Dataset].[Open_Cases_ex]
   SET CASE_LOCAL_ID = @CASELOCALID,@CASELOCALID = @CASELOCALID + 1

@@ -8,6 +8,7 @@ GO
 
 
 
+
 CREATE VIEW [DatasetProWat].[Open_Work_Orders_ex_Filtered]
 AS
 
@@ -53,6 +54,10 @@ join [DatasetProWat].[Syn_OrdReason_ex] ORN
 on orn.ORR_ID = o.ord_ordreason
 left join [DatasetProWat].[Syn_EquipHdr_ex] EQ
 on OL.ORL_IDNO = EQ.EQH_IDNO
+LEFT OUTER JOIN
+                         DatasetProWat.Syn_Customer_ex AS C ON C.CUS_Account = O.ORD_Account LEFT OUTER JOIN
+                         Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(VARCHAR(100), C.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
+
 where DBO.ShowOrderStatus(ORD_STATUS,ORD_INVFLAG) in ('New','Despatched')
 --decision to not pull any SER worktypes----
 and ORD_OrdReason not in (0,12,13,102,118,112,128)
@@ -71,5 +76,8 @@ and ORD_OrdReason in (1,2,3,4,5,6,7,8,10,14,
 120,122,123,124,125,127,129,
 130,131,132,133,134,135,136,137)
 and DBO.CONVERTFROMCLARION(ORD_REQUEST_DATE) > '2019-12-31'
+AND (Dataset.Filter_Customer('GBASP', 'ex', 
+                         ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), 
+                         C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
 GO

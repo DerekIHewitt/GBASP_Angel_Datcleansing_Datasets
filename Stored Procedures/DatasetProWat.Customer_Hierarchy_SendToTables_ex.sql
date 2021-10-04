@@ -11,6 +11,8 @@ GO
   Description: Retrieve Customer Hierarchy details
 --			   RYFE 2021-08-06 Created based on GBASP Data Cleansing customer contact send for transform
 -- 2           RISM 2021-09-02 Changed the code as was limited by account group. No longer the driver, price book is the driver now
+-- 3           RISM 2021-09-21 Removed the account group at top level as not required and creates a problem with the output file
+-- 4           RISM 2021-09-23 Removing the account group entirely, only to be referenced at customer header level
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Hierarchy_SendToTables_ex]
 AS
@@ -33,7 +35,7 @@ SET NOCOUNT ON;
 	left(trim(ISNULL(ac.cus_company, '')),35) AS Key_Acct_name,			--Account group. Take this description 
 	c.cus_account AS Del_Acct,											--LEVEL 2. No manipulation needed here, just pull the IFS customer ID as is
 	left(trim(c.cus_company),35) AS cus_company,						--Delivery account description
-	(case when C.cus_acgroup = 0 then '' else cast(C.cus_acgroup as varchar(30)) end) as cus_acgroup,	    --Account group. Is a referenced item at delivery account level
+	--(case when C.cus_acgroup = 0 then '' else cast(C.cus_acgroup as varchar(30)) end) as cus_acgroup,	    --RISM 2021-09-23 no longer required
 	c.cus_type
 
 
@@ -75,7 +77,7 @@ SET NOCOUNT ON;
       ,[LEVEL_NAME]
       ,[PARENT_CUST_ID]
       ,[CHILD_CUST_ID]
-	  ,[ACCOUNT_GROUP]
+	 -- ,[ACCOUNT_GROUP]
 		)
 		SELECT
 		DISTINCT 
@@ -87,9 +89,9 @@ SET NOCOUNT ON;
         '1'							AS [LEVEL_ID],
 		'Price Book'				AS [LEVEL_NAME],
 		'*'							AS [PARENT_CUST_ID],
-		Key_Acct					AS [CHILD_CUST_ID],
-		case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]			--Cannot have this because multiple account groups can be there for the same price book
-
+		Key_Acct					AS [CHILD_CUST_ID]
+		--case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]			--Cannot have this because multiple account groups can be there for the same price book
+		--'' AS [ACCOUNT_GROUP]    --TO REMEDY ABOVE COMMENT REGARDS MULTIPLE GROUPS. ACCOUNT GROUP AT TOP LEVEL NOT REQUIRED
       
 		FROM	#RECS cus
 		--WHERE   Del_Acct = ''
@@ -137,7 +139,7 @@ SET NOCOUNT ON;
       ,[LEVEL_NAME]
       ,[PARENT_CUST_ID]
       ,[CHILD_CUST_ID]
-	  ,[ACCOUNT_GROUP]
+	 -- ,[ACCOUNT_GROUP]
 		)
 		SELECT
 		DISTINCT 
@@ -149,8 +151,8 @@ SET NOCOUNT ON;
         '2'							AS [LEVEL_ID],
 		'Delivery Account'			AS [LEVEL_NAME],
 		Key_Acct					AS [PARENT_CUST_ID],
-		Del_Acct					AS [CHILD_CUST_ID],
-		case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]				   
+		Del_Acct					AS [CHILD_CUST_ID]
+		--case when cus_acgroup = 0 then ' ' ELSE cus_acgroup		END			AS [ACCOUNT_GROUP]				   
 		FROM	#RECS cus
 		WHERE Del_Acct != ''
 		

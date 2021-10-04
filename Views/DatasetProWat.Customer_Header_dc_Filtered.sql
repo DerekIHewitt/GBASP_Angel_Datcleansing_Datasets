@@ -32,9 +32,9 @@ dc.CUS_Account)), LEFT(TRIM(dc.CUS_Company), 100), ISNULL(dc.CUS_Type, '{NULL}')
 = 1 THEN 'ALL' /* 'Consolidate across all sites and order types'*/ WHEN isnull(invoice_customer_info.cus_inveachdel, 0) = 0 AND isnull(invoice_customer_info.cus_invcons, 0) 
 = 0 THEN 'SITE' /* 'Consolidate by sites only'*/ WHEN isnull(invoice_customer_info.cus_inveachdel, 0) = 1 AND isnull(CASE WHEN dc.cus_acct_to_inv = 0 THEN dc.cus_account ELSE dc.cus_acct_to_inv END, 0) <> 0 AND 
 isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'NONE' /* 'No Consolidation'*/ ELSE '' /* Not in RS original but I think It will be required (otherwise the field will be NULL)*/ END AS NX_BR_CONSOLIDATION, 
-REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), dc.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, 
-CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), dc.cus_importac)), '') ='0' THEN ''
-           ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), dc.cus_importac)), '')  END AS NX_IMPORT_ACCOUNT
+REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), dc.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), dc.cus_importac)), '') 
+= '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), dc.cus_importac)), '') END AS NX_IMPORT_ACCOUNT,CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), dc.CUS_ACGroup)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), dc.CUS_ACGroup)), '') 
+END AS NX_ACCOUNT_GROUP
 FROM            DatasetProWat.Syn_Customer_dc dc LEFT JOIN
                          DatasetProWat.Syn_Customer_dc AS invoice_customer_info /*customer table joined to itself to pull the invoice account information, as it is its own record in customer*/ ON 
                          CASE WHEN dc.cus_acct_to_inv = 0 THEN dc.cus_account ELSE dc.cus_acct_to_inv END = invoice_customer_info.cus_account LEFT OUTER JOIN
