@@ -14,6 +14,9 @@ GO
 --RISM         11-06-2021   Maint price needs to be divided by same rules as the service freq rules are applied, so finalmaintprice has been amended 
 --RISM		   14-06-2021   Elevy needs to be ELMONTH for EL_SPAN  = 'M' and ELANNUAL for EL_SPAN = 'Y'. price needed to have same rules as maint price above so if elannual divide by 12
 --RYFE         20-08-2021   CHanges done to the COMPETIT join after Validation Checks
+--RYFE         07-10-2021   Added ISNULL to price,frequency values when deciding Matrix type
+--RYFE         08-10-2021   Added DISTINCT to avoid duplicate rows
+--RYFE         11-10-2021   Make EL price 0 if EL Frequency is 0
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -103,6 +106,7 @@ SET NOCOUNT ON;
 	  
 
 	select 
+			DISTINCT																												--08/10/2021 RYFE Added to avoid duplicate rows
 						'GBASP'																			    AS MIG_SITE_NAME, 
 						 GETDATE()																			AS MIG_CREATED_DATE, 
 						 --ISNULL(CASE WHEN CUS_ACCT_TO_INV = 0 
@@ -426,7 +430,11 @@ SET NOCOUNT ON;
                          ISNULL(EQH_ELSpan, '{NULL}')														AS ENV_UNIT,
 						 
 						 ISNULL(
-						 FINAL_ELEVY_PRICE, 0)																	AS ENV_PRICE_PER_UNIT, 
+						 CASE WHEN ISNULL(ELEVY_FREQ,0) = 0
+						      THEN 0
+							  ELSE
+						      FINAL_ELEVY_PRICE
+							  END	, 0)																	AS ENV_PRICE_PER_UNIT, --11/10/2021 RYFE Make EL price 0 if frequency is 0
 						 
 						 																	
 						  ISNULL(
@@ -467,7 +475,7 @@ SET NOCOUNT ON;
 						 CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0
 						 ELSE
 						 12 END
-						 END, CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0 ELSE 1 END)
+						 END, CASE WHEN MATRIX_TYPE = 'Non MIF Rental Only' THEN 0 ELSE 12 END)
 																											AS ENV_INV_FREQ,
 						 
                          CASE WHEN DatasetProWat.CONVERTFROMCLARION(isnull(EQH_ELDue,0)) = '1800-12-28' 
@@ -598,24 +606,24 @@ SET NOCOUNT ON;
 -----------------------------------------------TOTALCARE----------------------------------------------------------
  case when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in 
+	   and isnull(eqh_pwfreq,0) = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in -- 07/10/2021 Ryfe added isnull
 	   and eqh_i_freq > 0
-	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
+	   and (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
-	   and EQH_M_FREQ = 0
+	   and ISNULL(EQH_M_FREQ,0) = 0								-- 07/10/2021 Ryfe added isnull
 then 'MIF - Totalcare only'
 -----------------------------------------------------------newest contract addition-----------------------------------------------
    when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in 
+	   and isnull(eqh_pwfreq,0) = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in -- 07/10/2021 Ryfe added isnull
 	   and eqh_i_freq > 0
 	   --and (eqh_rental_amnt) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
-	   and EQH_M_FREQ > 0
+	   and ISNULL(EQH_M_FREQ,0) > 0					-- 07/10/2021 Ryfe added isnull
 	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)> 0
 	   and cmp_name like 'OFFICE BEVERAGES'
 then 'MIF - Rental Only Recurring Sani/Service'
@@ -624,54 +632,54 @@ then 'MIF - Rental Only Recurring Sani/Service'
 ------------------------------------------RENTAL ONLY NON MIF--------------------INV LINE ONLY---------------------------------
 when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks' , 'Vending m/c')
-	   and eqh_pwfreq = 0
+	   and isnull(eqh_pwfreq,0) = 0				-- 07/10/2021 Ryfe added isnull
 	   and eqh_i_freq > 0
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
-	   and eqh_frequency = 0
+	   and isnull(eqh_frequency,0) = 0
 	  -- and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
-	   and eqh_filter_Freq = 0
-	   and EQH_M_FREQ = 0
+	   and isnull(eqh_filter_Freq,0) = 0     -- 07/10/2021 Ryfe added isnull
+	   and isnull(EQH_M_FREQ,0) = 0			-- 07/10/2021 Ryfe added isnull
 then 'Non MIF Rental Only'
 
 ------------------------------------RENTAL ONLY MIF SANI BY ACTIVITY RO/SOOE--------------------------------------------------
 when eqh_status_flag = 'R' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0
+	   and isnull(eqh_pwfreq,0) = 0			-- 07/10/2021 Ryfe added isnull
 	   and eqh_i_freq > 0
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) > 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
-	   and EQH_M_FREQ = 0
+	   and isnull(EQH_M_FREQ,0) = 0				-- 07/10/2021 Ryfe added isnull
 then 'MIF - Rental Only'
 
 ---------------------------------------------SOLD NON MIF---------------------------------------------------------
 
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks','Vending m/c')
-	   and eqh_pwfreq = 0
-	   and eqh_i_freq = 0
+	   and isnull(eqh_pwfreq,0) = 0			-- 07/10/2021 Ryfe added isnull
+	   and isnull(eqh_i_freq,0) = 0
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
 	   and eqh_frequency = 0
 	  -- and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
-	   and eqh_filter_Freq = 0
-	   and EQH_M_FREQ = 0
+	   and isnull(eqh_filter_Freq,0) = 0		-- 07/10/2021 Ryfe added isnull
+	   and isnull(EQH_M_FREQ,0) = 0				-- 07/10/2021 Ryfe added isnull
 then 'Sold Non MIF'
 
 ------------------------------------------MAINTENANCE ONLY SIF GOLD---------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0
+	   and isnull(eqh_pwfreq,0) = 0				-- 07/10/2021 Ryfe added isnull
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
-	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) = 0
+	   and (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
-	   and EQH_M_FREQ > 0
+	   and isnull(EQH_M_FREQ,0) > 0			-- 07/10/2021 Ryfe added isnull
 	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)> 0
 	   and EQH_M_Stock_Code not like ('SILV%')											--Added RYFE 07/07/2021
 then 'Maintenance Only SIF'
@@ -679,28 +687,28 @@ then 'Maintenance Only SIF'
 ------------------------------------------MAINTENANCE ONLY SIF SILVER---------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0
+	   and isnull(eqh_pwfreq,0) = 0				-- 07/10/2021 Ryfe added isnull
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
-	   and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) = 0
+	   and (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) = 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
-	   and EQH_M_FREQ > 0
+	   and isnull(EQH_M_FREQ,0) > 0				-- 07/10/2021 Ryfe added isnull
 	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)> 0
 	   and EQH_M_Stock_Code  like ('SILV%')											--Added RYFE 07/07/2021
 then 'Maintenance Only SIF-SILVER'
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
        AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler','Water Heater','Hospitality','HAND SANITISER','Cerise','Taps','Purezza','Bottle Filling Stati','Coffee m/c')
-	   and eqh_pwfreq = 0
-	   and eqh_i_freq = 0
+	   and isnull(eqh_pwfreq,0) = 0			-- 07/10/2021 Ryfe added isnull
+	   and isnull(eqh_i_freq,0) = 0					-- 07/10/2021 Ryfe added isnull
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
 	   and eqh_frequency > 0
 	   and isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) > 0
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
-	   and EQH_M_FREQ = 0
+	   and isnull(EQH_M_FREQ,0) = 0					-- 07/10/2021 Ryfe added isnull
 	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)= 0
 then 'Sani Only SIF'
 
@@ -730,12 +738,12 @@ end
   as Category
   -----------------------------------these repeat below as they are in the correct sections but have added here to check the matrix rules-----------
   , eqh_status_flag as 'R/S'
-  , eqh_pwfreq AS PIPEWORK_FREQ
-  , eqh_i_freq as Rental_Frequency_inv
-  ,(eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) as Rental_Price				--Added c_value and sani amnt as a fix
-  , eqh_frequency as sani_freq
+  , isnull(eqh_pwfreq,0) AS PIPEWORK_FREQ
+  , isnull(eqh_i_freq,0) as Rental_Frequency_inv
+  ,(isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) as Rental_Price				--Added c_value and sani amnt as a fix
+  , isnull(eqh_frequency,0) as sani_freq
   ,isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN EQH_SaniPrice ELSE PB.PRI_Price END,st_san.sto_price) AS FINALSANIPRICE
-  , EQH_M_FREQ AS MAINT_FREQ
+  , isnull(EQH_M_FREQ,0) AS MAINT_FREQ
   --,isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price) AS FINALMAINTPRICE   --RISM         11-06-2021 NEEDED EXTRA VALIDATION TO GET CORRECT UNIT PRICE
     ,case when concat(eqh_m_freq,eqh_m_span) = '1M' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)	-- RYFE 15/06/2021 Changed the code only to devide by        
 	 when concat(eqh_m_freq,eqh_m_span) = '1Y' then round(isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,st_mnt.sto_price)/EQH_M_FREQ,2)					--  EQH_M_FREQ since Y and W are catered for in the pre processor
@@ -797,7 +805,7 @@ END AS  FINALMAINTPRICE																							--RISM         11-06-2021 REPLACES
 --------------------------------------------MAINT--------------------------------------------
 , EQH_M_STOCK_CODE
 , EQH_UseMaintPrice
-, EQH_M_FREQ AS MAINTenance_FREQuency
+, isnull(EQH_M_FREQ,0) AS MAINTenance_FREQuency
 , EQH_MAINTPRICE AS MAINT_PRICE
 ,PBM.PRI_PRICE AS MAINT_PRICE_BOOK_PRICE
 , ST_MNT.STO_PRICE AS MAINTSTOCK_PRICE
