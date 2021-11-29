@@ -4,7 +4,7 @@ SET ANSI_NULLS ON
 GO
 CREATE VIEW [Dataset].[PM_Actions_Non_SC_Material_ex_Filtered]
 AS
-SELECT        MIG_SITE_NAME, PM_NO, SITE, ACTION, WO_SITE, INTERVAL, CUSTOMER_ID, OPERATIONAL_STATUS_ID, PART_NO, QTY, MIG_CREATED_DATE
+SELECT        MIG_SITE_NAME, PM_NO, SITE, ACTION, WO_SITE, INTERVAL, CUSTOMER_ID, OPERATIONAL_STATUS_ID, PART_NO, QTY, MIG_CREATED_DATE, PRICE
 FROM            Dataset.PM_Actions_Non_SC_Material_ex
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
@@ -86,7 +86,7 @@ Begin DesignProperties =
                Right = 314
             End
             DisplayFlags = 280
-            TopColumn = 1
+            TopColumn = 2
          End
       End
    End

@@ -6,13 +6,14 @@ CREATE VIEW [DatasetProWat].[Customer_Header_ex_Filtered]
 AS
 SELECT        ROW_NUMBER() OVER (ORDER BY ex.CUS_Account) AS ID, 'GBASP' AS MIG_SITE_NAME, '' AS MIG_COMMENT, GETDATE() AS MIG_CREATED_DATE, TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)) AS CUSTOMER_ID, 
 LEFT(TRIM(ex.CUS_Company), 100) AS NAME, invoice_customer_info.CUS_PayTerms AS PAY_TERM_ID, ISNULL(TRIM(CONVERT(nvarchar(10), ex.CUS_Credit_Limit)), 0) AS CREDIT_LIMIT, 
-ISNULL(CASE WHEN ex.cus_acct_to_inv = 0 THEN '' ELSE TRIM(CONVERT(VARCHAR(100), ex.cus_acct_to_inv)) END, '') AS INVOICE_CUSTOMER, '' AS INVOICE_SORT_DB, 'TRUE' AS EMAIL_ORDER_CONF_DB, 
+ISNULL(CASE WHEN ex.cus_acct_to_inv = 0 THEN '' ELSE TRIM(CONVERT(VARCHAR(100), ex.cus_acct_to_inv)) END, '') AS INVOICE_CUSTOMER, '' AS INVOICE_SORT_DB, 'FALSE' AS EMAIL_ORDER_CONF_DB, 
 'TRUE' AS EMAIL_INVOICE_DB, ISNULL(CONVERT(VARCHAR(10), ex.CUS_SectorID), '{NULL}') AS CRM_ACCOUNT_TYPE, invoice_customer_info.CUS_PayType AS PAYMENT_METHOD, '' AS PAY_ADDR_DESCRIPTION, 
 ISNULL(CONVERT(VARCHAR(50), format(invoice_customer_info.CUS_ACNumber, '00000000')), '') AS PAY_ADDR_ACCOUNT, ISNULL(CONVERT(VARCHAR(100), format(invoice_customer_info.CUS_ACSortCode, '000000')), '') 
-AS PAY_ADDR_SORT_CODE, ISNULL(TRIM(invoice_customer_info.CUS_ACName), '') AS PAY_ADDR_ACC_NAME, '' AS PAY_ADDR_BUILD_SOC_REF, '' AS PAY_ADDR_TRANS_CODE, '' AS PAY_ADDR_OUR_REF, 'CA' AS CREDIT_ANALYST, 
-ISNULL(TRIM(CONVERT(nvarchar(100), ex.CUS_AcqFrom)), '') AS ACQUIRED_FROM_COMP, '' AS ASSOCIATION_NO, '0' AS NX_GROUP_ID, ex.CUS_Charge_VAT AS NX_TAX_CODE, '9999' AS NX_CUST_GRP, '0' AS NX_MARKET_CODE, 
-'DIR' AS NX_ORDER_TYPE, '' AS NX_IDENTITY_TYPE_DB, CASE WHEN ex.cus_Invtype = 'O' THEN CASE WHEN ex.cus_invcons = 0 THEN 'O' ELSE 'P' END ELSE ex.cus_Invtype END AS NX_PAY_OUTPUT_MEDIA_DB, 
-'FALSE' AS NX_DEFAULT_PAYMENT_METHOD, 'NO' AS NX_ACTIVE_TRIAL_DB, CASE WHEN ex.Cus_Industry = '9' THEN 'TRUE' ELSE '' END AS NX_CCA_FLAG_DB, ISNULL(LEFT(TRIM(ex.CUS_CustOrder), 99), '') 
+AS PAY_ADDR_SORT_CODE, ISNULL(TRIM(invoice_customer_info.CUS_ACName), '') AS PAY_ADDR_ACC_NAME, '' AS PAY_ADDR_BUILD_SOC_REF, '' AS PAY_ADDR_TRANS_CODE, '' AS PAY_ADDR_OUR_REF, 
+'CA01' AS CREDIT_ANALYST, ISNULL(TRIM(CONVERT(nvarchar(100), ex.CUS_AcqFrom)), '') AS ACQUIRED_FROM_COMP, '' AS ASSOCIATION_NO, '0' AS NX_GROUP_ID, ex.CUS_Charge_VAT AS NX_TAX_CODE, '9999' AS NX_CUST_GRP, 
+'0' AS NX_MARKET_CODE, 'DIR' AS NX_ORDER_TYPE, '' AS NX_IDENTITY_TYPE_DB, 
+CASE WHEN ex.cus_Invtype = 'O' THEN CASE WHEN ex.cus_invcons = 0 THEN 'O' ELSE 'P' END ELSE ex.cus_Invtype END AS NX_PAY_OUTPUT_MEDIA_DB, 'FALSE' AS NX_DEFAULT_PAYMENT_METHOD, 
+CASE WHEN ex.CUS_TYPE LIKE ('%TRIAL%') THEN 'YES' ELSE 'NO' END AS NX_ACTIVE_TRIAL_DB, CASE WHEN ex.Cus_Industry = '9' THEN 'TRUE' ELSE '' END AS NX_CCA_FLAG_DB, ISNULL(LEFT(TRIM(ex.CUS_CustOrder), 99), '') 
 AS NX_BLANKET_PURCHASE_ORDER, 'FALSE' AS NX_CREDIT_BLOCK, CASE WHEN ISNULL(ex.CUS_PODate, 0) = 0 THEN '' ELSE CASE WHEN ISNULL(LEFT(TRIM(ex.CUS_CustOrder), 99), '') = '' THEN '' ELSE CONVERT(nvarchar(21), 
 Dataset.ConvertProwatDate(ex.CUS_PODate, NULL), 126) END END AS NX_PO_EXPIRY_DATE, CASE WHEN ISNULL(LEFT(TRIM(ex.CUS_CustOrder), 99), '') = '' THEN 0 ELSE 9999999 END AS NX_PO_EXPIRY_VALUE, 
 0 AS NX_PO_VALUE_USED, CASE WHEN ex.CUS_SectorID = 1 THEN 'NATIONAL' ELSE 'ALL' END AS NX_MESSAGE_GROUP, 0 AS NX_ALLOWED_OVERDUE_AMOUNT, 0 AS NX_ALLOWED_OVERDUE_DAYS, 
@@ -71,8 +72,7 @@ isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'SITE' /* 'Consolidate by 
 = 1 THEN CASE WHEN ex.cus_acct_to_inv != 0 AND isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'NONE' WHEN isnull(ex.cus_acct_to_inv, 0) 
 = 0 THEN 'NONE' END /* 'No Consolidation'*/ ELSE '' /* This not in RS orignal code but I think required to prevent NULLS being passed out.*/ END AS NX_BR_CONSOLIDATION, REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), 
 ex.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') 
-END AS NX_IMPORT_ACCOUNT,CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') 
-END AS NX_ACCOUNT_GROUP
+END AS NX_IMPORT_ACCOUNT, /*CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') END  */ '' AS NX_ACCOUNT_GROUP
 FROM            DatasetProWat.Syn_Customer_ex ex LEFT JOIN
                          DatasetProWat.Syn_Customer_ex AS invoice_customer_info /*customer table joined to itself to pull the invoice account information, as it is its own record in customer*/ ON CASE WHEN ISNULL(ex.cus_acct_to_inv, 0) 
                          = 0 THEN ex.cus_account ELSE ex.cus_acct_to_inv END = invoice_customer_info.cus_account LEFT OUTER JOIN

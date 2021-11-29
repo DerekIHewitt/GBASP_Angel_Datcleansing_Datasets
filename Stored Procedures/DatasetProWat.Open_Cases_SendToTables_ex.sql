@@ -18,6 +18,8 @@ SET NOCOUNT ON;
 
 	DECLARE @MIG_SITENAME varchar(5) = 'GBASP';
 	DECLARE @CASELOCALID INT         = 2106121  --NEED TO CHECK THIS EACH TIME FROM THE MAX CASE ID IN THE TARGET ENVIRONMENT
+	DECLARE @CUTDATE varchar (10)    = '2021-11-15'
+	--DECLARE @CUTOFFDATE VARCHAR(10)  = '2020-11-15'
 	--DECLARE @FilterMode int = Dataset.Filter_Mode('dc','Customer');
 
 	---------------- Delete records already in the loading table for this site -----------------------------------------------
@@ -129,10 +131,21 @@ LEFT JOIN (
 		
 		
 
-WHERE [QLG_Closed] = 0 
-  and [QLG_StatusID] = 42
-  AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+WHERE --[QLG_Closed] = 0 
+	  --	and [QLG_StatusID] = 42
+	  --AND 
+  (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
+
+  AND case when [QLG_Closed] = 0 and [QLG_StatusID] = 42 then 'VALID_OPEN_CASE'
+      WHEN [QLG_Closed] = 1 AND us.USR_UserID in (
+								624,2637,472,966,529,1264,1155,35,
+								2671,1060,1011,2655,605,500,650,569,642
+								)
+							AND dbo.convertfromclarion(qlg_resolveddate) > DATEADD(year, -1, @CUTDATE) 
+	  THEN 'VALID_CLOSED_CASE'
+	  ELSE 'INVALID' 
+	  END NOT LIKE 'INVALID'
 
   UPDATE [Dataset].[Open_Cases_ex]
   SET CASE_LOCAL_ID = @CASELOCALID,@CASELOCALID = @CASELOCALID + 1

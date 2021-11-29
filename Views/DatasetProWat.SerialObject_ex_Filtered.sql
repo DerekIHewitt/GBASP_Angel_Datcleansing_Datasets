@@ -6,18 +6,20 @@ CREATE VIEW [DatasetProWat].[SerialObject_ex_Filtered]
 AS
 SELECT        ROW_NUMBER() OVER (ORDER BY EQH_IDNo) AS ID, 'GBASP' [MIG_SITE_NAME], '' AS MIG_COMMENT, getdate() AS MIG_CREATED_DATE, 
 [EQH_IDNo] [MCH_CODE]/*{UID for machine?}				--UID in legacy system to be mapped to a unique IFS number for the piece of equipment*/ , ISNULL(T_ST.STO_Description, '') [MCH_NAME]/*Description for the piece of customer equiment*/ , 
-[EQH_Account] [CUSTOMER_ID]/*Legacy account code to map to an IFS account for the address the machine is at.*/ , [EQH_Stock_Code] [PART_NO]/*----------------------------------------------------------*/ , 
-REPLACE([EQH_ID],'&','+')  [SERIAL_NO]/*-----------------------------------------------------------*/ , Dataset.ConvertProwatDate(EQH_INSTALL_DATE, '2009-01-01') [INSTALLATION_DATE]/*{Dates apear to be days offset from 01/01/1800}		--Date the machinewas installed.*/ , 
+[EQH_Account] [CUSTOMER_ID]/*Legacy account code to map to an IFS account for the address the machine is at.*/ , [EQH_Stock_Code] [PART_NO]/*----------------------------------------------------------*/ , REPLACE([EQH_ID], '&', '+') 
+[SERIAL_NO]/*-----------------------------------------------------------*/ , Dataset.ConvertProwatDate(EQH_INSTALL_DATE, '2009-01-01') [INSTALLATION_DATE]/*{Dates apear to be days offset from 01/01/1800}		--Date the machinewas installed.*/ , 
 TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) [OWNERSHIP], TRIM(LEFT(ISNULL([EQH_Location], ''), 10)) [LOCATION1], TRIM(SUBSTRING(ISNULL([EQH_Location], '') + space(15), 11, 15)) [LOCATION2], '' AS [OWNER], '' [NX_LATITUDE], 
-'' [NX_LONGITUDE], 'IN_OPERATION' AS NX_OPERATIONAL_STATUS, ISNULL(HAS_PEDAL, '') AS NX_HAS_PEDAL, Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), 
-ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), '', ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 
-'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), EQH_Account, 
-LEFT(TRIM(DatasetProWat.Syn_Customer_ex.CUS_Company), 100), ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'))) AS NX_FILTER_STATUS
+'' [NX_LONGITUDE], CASE WHEN isnull(cmp_name, '') LIKE ('%BILLI%') AND TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) = 'S' THEN 'OUT_OF_OPERATION' ELSE 'IN_OPERATION' END AS NX_OPERATIONAL_STATUS, ISNULL(HAS_PEDAL, '') AS NX_HAS_PEDAL, 
+Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList,
+ 0), '', ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 
+0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), EQH_Account, LEFT(TRIM(DatasetProWat.Syn_Customer_ex.CUS_Company), 100), ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'))) 
+AS NX_FILTER_STATUS
 FROM            DatasetProWat.Syn_EquipHdr_ex T_EH LEFT JOIN
                          DatasetProWat.[Syn_Stock_ex] T_ST ON T_EH.EQH_Stock_Code = T_ST.STO_Stock_Code LEFT JOIN
                          Dataset.Customer_Filter_Override ON Dataset.Customer_Filter_Override.MIG_SITE_NAME = 'GBASP' AND Dataset.Customer_Filter_Override.CUSTOMER_ID = T_EH.EQH_Account LEFT JOIN
                          Dataset.SerialObject_Filter_Override ON 'GBASP' = Dataset.SerialObject_Filter_Override.MIG_SITE_NAME AND T_EH.EQH_IDNo = Dataset.SerialObject_Filter_Override.MCH_CODE LEFT JOIN
                          DatasetProWat.Syn_Customer_ex ON DatasetProWat.Syn_Customer_ex.CUS_Account = T_EH.EQH_Account LEFT JOIN
+                         DatasetProWat.Syn_Competit_ex acq ON acq.CMP_ID = DatasetProWat.Syn_Customer_ex.CUS_AcqFrom LEFT JOIN
                          DatasetProWat.Syn_EQTYPE_ex T_ET ON T_ET.ety_id = T_ST.sto_eqtype LEFT JOIN
                              (SELECT        EQH_IDNO AS PEDAL_ID, REPLACE(REPLACE(SUBSTRING(EQH_ID, 4, 100), ' ', ''), '-', '') AS SERIALLINK, '1' AS HAS_PEDAL, STO_Description AS pedal_name
                                FROM            DatasetProWat.Syn_EquipHdr_ex EQ JOIN
@@ -29,14 +31,14 @@ WHERE        (Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialOb
                          ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), '', ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 'ex', 
                          ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), T_EH.EQH_Account, 
                          LEFT(TRIM(DatasetProWat.Syn_Customer_ex.CUS_Company), 100), ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'))) > 0) AND T_ET.ety_name NOT LIKE 'PEDAL' AND 
-                         T_ET.ety_name NOT LIKE 'Management Fee' AND T_ET.ety_name NOT IN ('Recycling Scheme', 'Ancilliaries & Racks', 'Vending m/c')
+                         T_ET.ety_name NOT LIKE 'Management Fee' AND T_ET.ety_name NOT IN ('Recycling Scheme', 'Ancilliaries & Racks')
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 
    Begin PaneConfigurations = 
       Begin PaneConfiguration = 0
          NumPanes = 4
-         Configuration = "(H (1[41] 4[20] 2[28] 3) )"
+         Configuration = "(H (1[23] 4[29] 2[39] 3) )"
       End
       Begin PaneConfiguration = 1
          NumPanes = 3
