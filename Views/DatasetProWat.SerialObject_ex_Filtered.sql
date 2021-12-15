@@ -6,13 +6,14 @@ CREATE VIEW [DatasetProWat].[SerialObject_ex_Filtered]
 AS
 SELECT        ROW_NUMBER() OVER (ORDER BY EQH_IDNo) AS ID, 'GBASP' [MIG_SITE_NAME], '' AS MIG_COMMENT, getdate() AS MIG_CREATED_DATE, 
 [EQH_IDNo] [MCH_CODE]/*{UID for machine?}				--UID in legacy system to be mapped to a unique IFS number for the piece of equipment*/ , ISNULL(T_ST.STO_Description, '') [MCH_NAME]/*Description for the piece of customer equiment*/ , 
-[EQH_Account] [CUSTOMER_ID]/*Legacy account code to map to an IFS account for the address the machine is at.*/ , [EQH_Stock_Code] [PART_NO]/*----------------------------------------------------------*/ , REPLACE([EQH_ID], '&', '+') 
-[SERIAL_NO]/*-----------------------------------------------------------*/ , Dataset.ConvertProwatDate(EQH_INSTALL_DATE, '2009-01-01') [INSTALLATION_DATE]/*{Dates apear to be days offset from 01/01/1800}		--Date the machinewas installed.*/ , 
-TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) [OWNERSHIP], TRIM(LEFT(ISNULL([EQH_Location], ''), 10)) [LOCATION1], TRIM(SUBSTRING(ISNULL([EQH_Location], '') + space(15), 11, 15)) [LOCATION2], '' AS [OWNER], '' [NX_LATITUDE], 
-'' [NX_LONGITUDE], CASE WHEN isnull(cmp_name, '') LIKE ('%BILLI%') AND TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) = 'S' THEN 'OUT_OF_OPERATION' ELSE 'IN_OPERATION' END AS NX_OPERATIONAL_STATUS, ISNULL(HAS_PEDAL, '') AS NX_HAS_PEDAL, 
-Dataset.Filter_SerialObject('GBASP', 'ex', ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList,
- 0), '', ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 
-0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), EQH_Account, LEFT(TRIM(DatasetProWat.Syn_Customer_ex.CUS_Company), 100), ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'))) 
+[EQH_Account] [CUSTOMER_ID]/*Legacy account code to map to an IFS account for the address the machine is at.*/ , [EQH_Stock_Code] [PART_NO]/*----------------------------------------------------------*/ , 
+REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE([EQH_ID], '&', '+'), '_', '-'), '=', '-'), '>', '-'), '..', '-'), '^', '-') [SERIAL_NO]/*-----------------------------------------------------------*/ , Dataset.ConvertProwatDate(EQH_INSTALL_DATE, '2009-01-01') 
+[INSTALLATION_DATE]/*{Dates apear to be days offset from 01/01/1800}		--Date the machinewas installed.*/ , TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) [OWNERSHIP], TRIM(LEFT(ISNULL([EQH_Location], ''), 10)) [LOCATION1], 
+TRIM(SUBSTRING(ISNULL([EQH_Location], '') + space(15), 11, 15)) [LOCATION2], '' AS [OWNER], '' [NX_LATITUDE], '' [NX_LONGITUDE], CASE WHEN isnull(cmp_name, '') LIKE ('%BILLI%') AND TRIM(ISNULL(EQH_Status_Flag, '{NULL}')) 
+= 'S' THEN 'OUT_OF_OPERATION' ELSE 'IN_OPERATION' END AS NX_OPERATIONAL_STATUS, ISNULL(HAS_PEDAL, '') AS NX_HAS_PEDAL, Dataset.Filter_SerialObject('GBASP', 'ex', 
+ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), '', 
+ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'), Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), EQH_Account, LEFT(TRIM(DatasetProWat.Syn_Customer_ex.CUS_Company), 100), ISNULL(DatasetProWat.Syn_Customer_ex.CUS_Type, '{NULL}'))) 
 AS NX_FILTER_STATUS
 FROM            DatasetProWat.Syn_EquipHdr_ex T_EH LEFT JOIN
                          DatasetProWat.[Syn_Stock_ex] T_ST ON T_EH.EQH_Stock_Code = T_ST.STO_Stock_Code LEFT JOIN

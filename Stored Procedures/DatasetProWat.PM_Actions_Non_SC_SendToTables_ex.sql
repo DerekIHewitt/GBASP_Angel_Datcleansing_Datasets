@@ -14,6 +14,9 @@ GO
 --								the 1-20 route suffix only
 --			   RYFE 2021-10-18 Added field price
 --			   RYFE 2021-11-24 route like %999 to become SUB
+--			   RYFE 2021-11-30 CALL Pm actions to get DEL-19L as JOB
+--			   RYFE 2021-12-09 CALL pm actions on seperate select with new logic
+--			   RYFE 2021-12-10 IFSDEF0016774 changes
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[PM_Actions_Non_SC_SendToTables_ex]
 AS
@@ -34,8 +37,74 @@ SET NOCOUNT ON;
 		COMMIT TRANSACTION
 	---------------- Add records to the loading table ---------------------------------------------------------
 	
+	INSERT into	[Dataset].[PM_Actions_Non_SC_ex] 
+		(   [MIG_SITE_NAME]
+      ,[PM_NO]
+      ,[SITE]
+      ,[OBJECT_ID]
+      ,[ACTION]
+      ,[WO_SITE]
+      ,[WORK_TYPE]
+      ,[START_VALUE]
+      ,[INTERVAL]
+      ,[INTERVAL_UNIT]
+      ,[CUSTOMER_ID]
+      ,[CONTRACT_ID]
+      ,[LINE_NO]
+      ,[STANDARD_JOB_ID]
+      ,[STANDARD_JOB_REVISION]
+      ,[QTY]
+      ,[PERFORMED_DATE_BASED]
+      ,[OPERATIONAL_STATUS_ID]
+      ,[VENDOR_NO]
+		)
 		
-	
+	  SELECT  DISTINCT
+      'GBASP'																									AS MIG_SITE_NAME
+	  , ''																										AS [PM_NO]
+      ,'UK300'																									AS [SITE]
+      ,[CRT_Account]																							AS [OBJECT_ID]
+      ,'CALL'																									AS [ACTION]
+      ,'UK300'																									AS [WO_SITE] 
+      ,'DEL'																									AS [WORK_TYPE]
+      ,''																										AS [START_VALUE]
+      ,''																										AS  [INTERVAL]
+      ,''																										AS [INTERVAL_UNIT]
+      ,[CRT_Account]																							AS [CUSTOMER_ID]
+      ,''																										AS [CONTRACT_ID]
+      ,''																										AS [LINE_NO]
+      ,'CALL-NA-DEL'																							AS [STANDARD_JOB_ID]
+      ,'1'																										AS [STANDARD_JOB_REVISION]
+      ,0																										AS [QTY]					        
+      ,'No'																										AS [PERFORMED_DATE_BASED]
+      
+	  ,	
+	  CASE WHEN right(trim(A.are_area),2) in ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20') 
+		THEN right(trim(A.are_area),2)
+		ELSE '' END																								AS [OPERATIONAL_STATUS_ID]  
+	   , CASE WHEN A.ARE_AREA LIKE'HYG SUB%' THEN '11600747' 
+			  WHEN A.ARE_AREA LIKE 'NSCSUB' THEN '11600749'
+			  WHEN A.ARE_AREA LIKE 'THIRSTY WORK' THEN '11000546'
+			  WHEN A.ARE_AREA LIKE 'CONSPLUS' THEN '11000172' 
+			  ELSE '' END 																					    AS [VENDOR_NO]	
+	   
+     FROM [DatasetProWat].[Syn_CusRoute_ex] CR
+     JOIN [DatasetProWat].[Syn_Area_ex] AS A  
+     ON A.are_routeid = CR.crt_routeid
+	 INNER JOIN [DatasetProWat].[Syn_Customer_ex] C			--There should be a valid customer account
+     ON C.CUS_ACCOUNT = CR.CRT_Account
+	 LEFT OUTER JOIN
+     Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.[Cus_Account])) = Dataset.Customer_Filter_Override.CUSTOMER_ID
+  
+	WHERE 
+	(Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.[Cus_Account])), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
+	AND 
+	A.are_routetype = 'D'
+	AND CASE WHEN right(trim(A.are_area),2) in ('01','02','03','04','05','06','07','08','09','10','11','12','13','14','15','16','17','18','19','20') 
+		   THEN right(trim(A.are_area),2)
+		   ELSE '' END <> ''
+	ORDER BY crt_account
   
 	
 
@@ -74,12 +143,12 @@ SET NOCOUNT ON;
       ,AUT_ACCOUNT																								AS [CUSTOMER_ID]
       ,''																										AS [CONTRACT_ID]
       ,''																										AS [LINE_NO]
-      ,'SUB-NA-DEL'																								AS [STANDARD_JOB_ID]
+      ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN 'CALL-NA-DEL' ELSE 'SUB-NA-DEL' END								AS [STANDARD_JOB_ID]
       ,'1'																										AS [STANDARD_JOB_REVISION]
       ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN '' WHEN S.[PM ACTION TYPE] = 'SUB'THEN 1  ELSE '' END			AS [QTY]					-- Added std job quantity as 1 because material will be migrated seperately        
       ,'No'																										AS [PERFORMED_DATE_BASED]
       -- ,CASE WHEN S.OPERATIONAL_STATUS like '%with op status' THEN right(trim(are_area),2) ELSE '' END	--RISM 2021-06-23 removed as put new logic in beloe
-	  ,S.OP_STATUS_ID																							AS [OPERATIONAL_STATUS_ID]  --RISM 2021-06-23 new logic
+	  ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN S.OP_STATUS_ID ELSE '' END									AS [OPERATIONAL_STATUS_ID]  --RISM 2021-06-23 new logic
 	   , SUPPLIER_ID																							AS VENDOR_NO	
 	   --S.[PM ACTION TYPE]   --only for reference, not in the pm mig job
 FROM 
@@ -152,7 +221,7 @@ from
   for s.[check] in ([SUB],[1-20]) )as pvt)PIV
   ON PIV.ACCOUNT = AUT.AUT_ACCOUNT
 
-  LEFT JOIN [DatasetProWat].[Syn_Customer_ex] C 
+  INNER JOIN [DatasetProWat].[Syn_Customer_ex] C			--There should be a valid customer account
   ON C.CUS_ACCOUNT = AUT.AUT_ACCOUNT
   LEFT OUTER JOIN
   Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.[Cus_Account])) = Dataset.Customer_Filter_Override.CUSTOMER_ID
@@ -160,7 +229,9 @@ from
   (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.[Cus_Account])), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
-  )s ORDER BY AUT_ACCOUNT
+  )s 
+  WHERE S.[PM ACTION TYPE] = 'SUB'						--08/12/2021 RYFE Original code only valid for SUB
+  ORDER BY AUT_ACCOUNT
 
 
   INSERT INTO [Dataset].[PM_Actions_Non_SC_Material_ex]
@@ -186,7 +257,7 @@ from
 	   ,'UK300'																									AS [WO_SITE] -- CUS_DEPOTID was removed because the WO site sould be UK300 always
 	   ,CONVERT(varchar,AUT_FREQ)																				AS [INTERVAL]
       ,aut_account																								AS [CUSTOMER_ID]
-	  ,S.OP_STATUS_ID																							AS [OPERATIONAL_STATUS_ID]  --RISM 2021-06-23 new logic
+	  ,''																										AS [OPERATIONAL_STATUS_ID]  --S.OP_STATUS_ID IFSDEF0016774 SUB PMs should not include Operational Status now only CALL
       ,S.[AUT_Stock_Code]																						AS [PART_NO]   
       ,S.[AUT_Qty]																								AS [QTY]					-- Added std job quantity as 1 because material will be migrated seperately  
 	  ,S.[PRICE]																								AS [PRICE]
@@ -257,7 +328,7 @@ from
   for s.[check] in ([SUB],[1-20]) )as pvt)PIV
   ON PIV.ACCOUNT = AUT.AUT_ACCOUNT
 
-  LEFT JOIN [DatasetProWat].[Syn_Customer_ex] C 
+  INNER JOIN [DatasetProWat].[Syn_Customer_ex] C				--There should be a valid customer account
   ON C.CUS_ACCOUNT = AUT.AUT_ACCOUNT
   LEFT OUTER JOIN
   Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.[Cus_Account])) = Dataset.Customer_Filter_Override.CUSTOMER_ID

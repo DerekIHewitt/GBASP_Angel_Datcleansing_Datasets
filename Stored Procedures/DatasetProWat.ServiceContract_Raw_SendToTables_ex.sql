@@ -37,6 +37,7 @@ GO
 --RISM		   26-11-2021   ADDED ISNULL TO CUS_PRICEBOOKAC link as NULL stops it from providing the correct link back to the right pricebook
 --RISM	       26-11-2021   Additional elevy price times frequency logic to force a dummy elevy line of 1 month at zero
 --RYFE         29-11-2021   Added 12 as frequency to avoid 0 frequency error for dummy ELEVY line
+--RYFE		   30-11-2021   Changed Revalution Logic according to new rules from Email 29/11/2021
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -644,6 +645,18 @@ SET NOCOUNT ON;
 							ELSE '12'
 							END																				AS CONTRACT_TERM,
 
+						 CASE WHEN ISNULL(EQH_PRSchemeID,0) = 0												
+						 THEN NULL
+						 WHEN ISNULL(EQH_PRSchemeID,0) = 5
+						 THEN NULL
+						 WHEN EQH_PRSchemeID = 1 AND  DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)), 0) > GETDate()	--30/11/2021 RYFE Take expiry date when reval type is genuinely 1
+						 THEN CASE WHEN  ISNULL(EQH_Expiry_Date,0) = 0 THEN NULL
+						      ELSE DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)), 0)
+							  END
+						
+						 ELSE																			
+
+
 
 						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) = '1800-12-28'
 						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate), '1800-12-28', NULL) 
@@ -662,8 +675,22 @@ SET NOCOUNT ON;
 							 
 					     END
 
+						 END
 						 END																				AS FIRST_REVALUATION_DATE,
-						 EQH_PRSchemeID																		AS REVALUATION_TYPE,
+
+						 CASE WHEN ISNULL(EQH_PRSchemeID,0) = 0												
+						 THEN NULL
+						 WHEN ISNULL(EQH_PRSchemeID,0) = 5
+						 THEN NULL
+						 ELSE 
+							CASE WHEN EQH_PRSchemeID != 1 AND ISNULL(EQH_Expiry_Date,0) != 0
+								 THEN CASE WHEN DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)), 0) < GETDate()
+											THEN 1
+									  END
+								 ELSE
+								 EQH_PRSchemeID
+								 END
+						 END																				AS REVALUATION_TYPE,
 						 'CUSTOMER_LEVEL'																	AS PO_SCHEMA,
 						 ''																					AS COMMENT
 						 
@@ -759,7 +786,7 @@ when eqh_status_flag = 'S'
 	   --and isnull(CASE WHEN EQH_UseFilterPrice = 1 THEN EQH_FilterPrice ELSE PBF.PRI_Price END,st_fil.sto_price) = 0
 	   --and eqh_filter_Freq = 0
 	   and isnull(EQH_M_FREQ,0) > 0			-- 07/10/2021 Ryfe added isnull
-	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN EQH_MaintPrice ELSE PBM.PRI_Price END,isnull(st_mnt.sto_price,0))> 0
+	   and isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN ISNULL(EQH_MaintPrice,0) ELSE PBM.PRI_Price END,isnull(st_mnt.sto_price,0))> 0 --01/12/2021 Ryfe added isnull to EQH_MaintPrice
 	   and EQH_M_Stock_Code not in ('FIX_SILVER','GEN_BLSILV','GENSILV1ST','SILV_PLUS1','SILV_PLUS3','SILV_PLUS5','SILV_SOFT1','SILV_SOFT3','SILV_SOFT5','SILVER')											--Added RYFE 07/07/2021
 then 'Maintenance Only SIF'
 
@@ -799,7 +826,7 @@ when eqh_status_flag = 'S'
 	   AND isnull(eqh_i_freq,0) * (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0 --RISM 05-11-2021 freq * price
 	   AND isnull(eqh_frequency,0) * isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN isnull(EQH_SaniPrice,0) ELSE PB.PRI_Price END,isnull(st_san.sto_price,0)) = 0 --RISM 05-11-2021 freq * price
 	   AND isnull(EQH_M_FREQ,0) * isnull(CASE WHEN EQH_UseMaintPrice = 1 THEN isnull(EQH_MaintPrice,0) ELSE PBM.PRI_Price END,isnull(st_mnt.sto_price,0)) = 0 --RISM 05-11-2021 freq * price
-	   AND isnull(cmp_name,'') NOT LIKE ('%BILLI%')
+	   AND isnull(cmp_name,'') NOT LIKE ('%BILLI%') 
 then 'FUBAR'
 -------------------------------------------------------------------------------------------------------------
 /*when eqh_status_flag = 'S'
