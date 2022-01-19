@@ -11,6 +11,7 @@ GO
 
 
 
+
 CREATE VIEW [DatasetProWat].[Open_Work_Orders_ex_Filtered]
 AS
 
@@ -70,11 +71,12 @@ and ORD_OrdReason not in (130,125,14,6,104,120,116,114,109,11)
 --decision to not pull any INS worktypes (going on bus opps)
 and ord_ordreason not in (2,7,34,36,88,90,93,100,105,110,121,126)
 
-and ORD_OrdReason in (1,3,4,5,8,10,35,37,
-39,89,91,101,103,106,107,
-108,111,113,115,117,
-119,122,123,124,127,129,
-131,132,133,134,135,136,137)
+AND (O.ORD_OrdReason NOT IN (4,35,91,107,123))
+						  AND (O.ORD_OrdReason NOT IN (14,104,114,120,130))
+						  AND (O.ORD_OrdReason NOT IN (6,109,116,125))
+
+AND (O.ORD_OrdReason IN (1, 3,  5, 8, 10, 37, 39, 89, 101, 103, 106, 108, 111, 113, 115, 117, 119, 122, 124, 127, 129, 131, 132, 
+                         133, 134, 135, 136, 137))
 and DBO.CONVERTFROMCLARION(ORD_REQUEST_DATE) > '2019-12-31'
 AND (Dataset.Filter_Customer('GBASP', 'ex', 
                          ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), 

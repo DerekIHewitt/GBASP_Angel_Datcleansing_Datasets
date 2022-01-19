@@ -17,7 +17,8 @@ CREATE TABLE [Dataset].[SerialObject_dc]
 [NX_LATITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NX_LONGITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NX_OPERATIONAL_STATUS] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[NX_HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[NX_HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NX_WARRANTY_END_DATE] [date] NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[SerialObject_dc] ADD CONSTRAINT [PK_SerialObject_dc] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

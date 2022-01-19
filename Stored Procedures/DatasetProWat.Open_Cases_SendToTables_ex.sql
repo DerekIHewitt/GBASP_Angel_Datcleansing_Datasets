@@ -10,6 +10,9 @@ GO
   Author:      RISM
   Description: Retrieve cases from prowat
 --			   RISM 24-06-2021
+
+--13-01-2022	RYFE	Added Case status
+--18-01-2022	RYFE	Added 12 month closed for complaints
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Open_Cases_SendToTables_ex]
 AS
@@ -18,7 +21,7 @@ SET NOCOUNT ON;
 
 	DECLARE @MIG_SITENAME varchar(5) = 'GBASP';
 	DECLARE @CASELOCALID INT         = 2106121  --NEED TO CHECK THIS EACH TIME FROM THE MAX CASE ID IN THE TARGET ENVIRONMENT
-	DECLARE @CUTDATE varchar (10)    = '2021-11-15'
+	DECLARE @CUTDATE varchar (10)    = '2022-01-17'
 	--DECLARE @CUTOFFDATE VARCHAR(10)  = '2020-11-15'
 	--DECLARE @FilterMode int = Dataset.Filter_Mode('dc','Customer');
 
@@ -47,7 +50,8 @@ SET NOCOUNT ON;
 	  [CALLER_EMAIL],
 	  [LANG_CODE_DB],
 	  [SECOND_CATEGORY],
-	  [CONTACT_NAME]
+	  [CONTACT_NAME],
+	  [NX_CASE_STATUS]
 	)
 
 
@@ -61,7 +65,7 @@ DBO.CONVERTFROMCLARION([QLG_RecDate])						AS CONTACT_DATE,      --if error chan
 'FALSE'					AS SHOW_EXTERNALLY,   --tick box do we want true or false--
 CONCAT('Contacted By',' ',U.USR_USERNAME,' ','Received Date',' ',DBO.CONVERTFROMCLARION([QLG_RecDate]),' ','Next Date',' ', DBO.CONVERTFROMCLARION([QLG_NextDate]),' ',rtrim(qlg_notes),PVT.COOLERLIST)						
 						AS DESCRIPTION,																																					--SCREENSHOT 4/5/7 OF 11
-'112'					AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, are we only ever loading retention requests in 
+'112'					AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, are we only ever loading retention requests in 323 Resolution 110 Invoice Dispute 
 '3'						AS TYPE_ID_DB,            -- is this to be hardcoded as global/local etc
 '103'					AS OUR_SEVERITY_DB,       -- is this to be hardcoded as 3 day sla
 '102'					AS OUR_PRIORITY,          -- is this to be hardcoded as 3 normal
@@ -73,7 +77,12 @@ QLG_ACCOUNT				AS CUSTOMER_ID,																																					--SCREENSHOT 
 'en'					AS LANG_CODE_DB
 ,QRE_REASON      AS SECOND_CATEGORY  -- screenshot 3 of 11 (dropwdown in ifs doesnt seem to have any values- how does this work)
 ,qlg_contname    as CONTACT_NAME       -- 6 of 11
-
+,CASE 
+ WHEN [QLG_Closed] = 0 
+      THEN 'OPEN'
+      ELSE 'CLOSED' 
+	  END				AS NX_CASE_STATUS
+						-- QST_Status needs to be part of the filter???
 FROM [DatasetProWat].[Syn_QuitLog_ex] QLG
      JOIN [DatasetProWat].[Syn_QuitReason_ex] QRE ON QRE.QRE_ID     = QLG.QLG_QREASONID
 LEFT JOIN [DatasetProWat].[Syn_Customer_ex]  C    ON C.CUS_ACCOUNT  = QLG.QLG_ACCOUNT
@@ -146,6 +155,81 @@ WHERE --[QLG_Closed] = 0
 	  THEN 'VALID_CLOSED_CASE'
 	  ELSE 'INVALID' 
 	  END NOT LIKE 'INVALID'
+
+INSERT into	[Dataset].[Open_Cases_ex]
+	( [MIG_SITE_NAME],
+	  [CASE_LOCAL_ID],
+	  [TITLE],
+	  [CONTACT_DATE],
+	  [ORGANIZATION_ID],
+	  [SHOW_EXTERNALLY],
+	  [DESCRIPTION],
+	  [CASE_CATEGORY_ID_DB],
+	  [TYPE_ID_DB],
+	  [OUR_SEVERITY_DB],
+	  [OUR_PRIORITY],
+	  [CUSTOMER_SEVERITY_DB],
+	  [OWNER],
+	  [CUSTOMER_ID],
+	  [CUSTOMER_SUPPORT_ORG],
+	  [CALLER_EMAIL],
+	  [LANG_CODE_DB],
+	  [SECOND_CATEGORY],
+	  [CONTACT_NAME],
+	  [NX_CASE_STATUS]
+	)
+SELECT  
+--THIS IS CURRENT CASE MIGRATION JOB LOAD TEMPLATE--
+
+'GBASP'										AS MIG_SITE_NAME,
+'@CASELOCALID'								AS CASE_LOCAL_ID,
+'Complaint'									AS TITLE, ----------SHOULD THIS BE CHANGED
+
+CASE  WHEN DBO.CONVERTFROMCLARION([COM_ContactDate]) = '1800-12-28' THEN GetDate()
+      ELSE DBO.CONVERTFROMCLARION([COM_ContactDate])
+	  END									AS CONTACT_DATE,          --  
+'UKWL'										AS ORGANIZATION_ID,
+'FALSE'										AS SHOW_EXTERNALLY,       --tick box do we want true or false--
+						
+concat(trim(com_notes),' ','Next Date:',replace(dbo.convertfromclarion(COM.COM_NextDate),'1800-12-28',''))		-- Point 12							
+											AS DESCRIPTION,			  --SCREENSHOT POINT 8 & 10												--SCREENSHOT 4/5/7 OF 11
+'117'										AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, 117 for complaints 
+'3'											AS TYPE_ID_DB,            -- is this to be hardcoded as global/local etc
+'103'										AS OUR_SEVERITY_DB,       -- is this to be hardcoded as 3 day sla
+'102'										AS OUR_PRIORITY,          -- is this to be hardcoded as 3 normal
+'103'										AS CUSTOMER_SEVERITY_DB,  -- is this the same value as our severity
+UPPER(REPLACE(US.USR_USERNAME,' ',''))	    AS OWNER,				  -- SCREENSHOT POINT 5         FRONT SCREEN 1/5/7/11
+COM_ACCOUNT									AS CUSTOMER_ID,			  -- SCREENSHOT POINT 1			FRONT SCREEN 1/5/7/11																														--SCREENSHOT 1 OF 11
+'UKWL'										AS CUSTOMER_SUPPORT_ORG,  -- is this UKWL as per ORGANIZATION_ID
+''											AS CALLER_EMAIL,          -- IS THIS REQUIRED TO BE POPULATED
+'en'										AS LANG_CODE_DB
+,cpr_REASON									AS SECOND_CATEGORY		  -- SCREENSHOT POINT 7          FRONT SCREEN 1/5/7/11
+,COM_contactname							AS CONTACT_NAME           -- SCREENSHOT POINT 2          CONTACTS TAB 2/3/4
+,CASE 
+ WHEN COM.COM_CloseDate = 0 
+      THEN 'OPEN'
+      ELSE 'CLOSED' 
+	  END									AS NX_CASE_STATUS
+--,COM_POSITION                               AS POSITION               -- SCREENSHOT POINT 3          CONTACTS TAB 2/3/4
+--,COM_TEL									AS TELEPHONE		      -- SCREENSHOT POINT 4          CONTACTS TAB 2/3/4
+--,com_status									AS STATUS                 -- SCREENSHOT POINT 11         FRONT SCREEN 1/5/7/11 This is default NEW in IFS so no need for seperate field
+--dbo.convertfromclarion(qlg_resolveddate)  AS RESOLVED_DATE
+--,QLG_CLOSED
+--,CPR_Reason
+--,QLG_STATUSID
+--,QS.qst_status
+
+
+FROM	  [DatasetProWat].[Syn_Complaint_ex] COM
+     JOIN [DatasetProWat].[Syn_CompReas_ex] cpr      ON cpr.cpr_ID     = com.com_REASONID
+LEFT JOIN [DatasetProWat].[Syn_Customer_ex]  C		   ON C.CUS_ACCOUNT  = com.com_ACCOUNT
+left join [DatasetProWat].[Syn_UsersMain_ex] us      ON us.usr_userid =  COM.COM_OWNEDBY
+--left join [DatasetProWat].[Syn_UsersMain_ex] U         ON U.USR_USERID   = QLG.QLG_CONTUSERID
+--left join [DatasetProWat].[Syn_UsersMain_ex] US        ON US.USR_USERID  = QLG.QLG_OWNEDBYID
+--left join [DatasetProWat].[Syn_QuitStat_ex]QS          ON QS.qst_id      = qlg.qlg_statusid
+--LEFT JOIN [DatasetProWat].[Syn_QuitItem_ex] QI         ON QI.QUI_ID      = QLG.QLG_id
+
+where (COM.COM_CloseDate = 0 OR dbo.convertfromclarion(COM.COM_CloseDate) > DATEADD(year, -1, @CUTDATE))		--18/01/2022 RYFE Bring one years closed data
 
   UPDATE [Dataset].[Open_Cases_ex]
   SET CASE_LOCAL_ID = @CASELOCALID,@CASELOCALID = @CASELOCALID + 1

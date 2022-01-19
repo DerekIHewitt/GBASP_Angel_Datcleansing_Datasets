@@ -38,6 +38,9 @@ GO
 --RISM	       26-11-2021   Additional elevy price times frequency logic to force a dummy elevy line of 1 month at zero
 --RYFE         29-11-2021   Added 12 as frequency to avoid 0 frequency error for dummy ELEVY line
 --RYFE		   30-11-2021   Changed Revalution Logic according to new rules from Email 29/11/2021
+--RISM		   06-02-2022   Amended Revaluation Type to cater for some returned NULLS on price schemes 2/6/7
+--RYFE         06-01-2022   Add TRIAL customers to the top of case statement
+--RISM         18-01-2022   Acquisition type (cmp_name) BILLI with Sold S status should not create a service contract. added underneath TRIAL case statement
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -149,6 +152,7 @@ SET NOCOUNT ON;
 						 WHEN MATRIX_TYPE = 'QUERY EQUIPMENT TYPES' THEN ';QUERY EQUIPMENT TYPES;'
 						 WHEN MATRIX_TYPE = 'TRIAL'                 THEN ';TRIAL EQUIPMENT NO SC;'
 						 WHEN MATRIX_TYPE = 'FUBAR'				    THEN ';D;'
+						 WHEN MATRIX_TYPE = 'BILLI-SOLD'            THEN ';BILLI SOLD EQUIP NO SC;'         --RISM 18-01-22 Added to stop creating a contract item
 						 ELSE ''
 
 
@@ -662,13 +666,10 @@ SET NOCOUNT ON;
 						 THEN REPLACE(DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate), '1800-12-28', NULL) 
                          ELSE 
 						 CASE WHEN DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate) < getDate()
-						      THEN CASE WHEN 
-							  dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
-							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)) < getDate()
-							  THEN DATEADD(month, DATEDIFF(month, 0,dateadd(year, (2022 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
-							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 0)
-							  ELSE DATEADD(month, DATEDIFF(month, 0,dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 
-							  DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 0)
+						      THEN 
+							  CASE WHEN dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)) < getDate()
+							  THEN DATEADD(month, DATEDIFF(month, 0,dateadd(year, (2022 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 0)
+							  ELSE DATEADD(month, DATEDIFF(month, 0,dateadd(year, (2021 - year( DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate))), 0)
 							  END
 						 ELSE
 						      DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_PRDueDate)), 0)
@@ -678,19 +679,23 @@ SET NOCOUNT ON;
 						 END
 						 END																				AS FIRST_REVALUATION_DATE,
 
+
+
+
 						 CASE WHEN ISNULL(EQH_PRSchemeID,0) = 0												
-						 THEN NULL
-						 WHEN ISNULL(EQH_PRSchemeID,0) = 5
-						 THEN NULL
+							  THEN NULL
+							  WHEN ISNULL(EQH_PRSchemeID,0) = 5
+							  THEN NULL
 						 ELSE 
-							CASE WHEN EQH_PRSchemeID != 1 AND ISNULL(EQH_Expiry_Date,0) != 0
-								 THEN CASE WHEN DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)), 0) < GETDate()
-											THEN 1
-									  END
-								 ELSE
-								 EQH_PRSchemeID
-								 END
-						 END																				AS REVALUATION_TYPE,
+						      CASE WHEN EQH_PRSchemeID != 1 AND ISNULL(EQH_Expiry_Date,0) != 0
+								 --THEN CASE WHEN                                                --RS 06/01/22 SECOND CASE CAUSING SOME NULL VALUES FOR PRICE SCHEME 2
+																								 --SO HAVE AMENDED TO USE 'AND' WITHIN THE LOGIC
+								  and DATEADD(month, DATEDIFF(month, 0,DatasetProWat.CONVERTFROMCLARION(EQH_Expiry_Date)), 0) < GETDate()
+								   THEN 1
+									 -- END
+								   ELSE EQH_PRSchemeID
+								   END
+						   END																				AS REVALUATION_TYPE,
 						 'CUSTOMER_LEVEL'																	AS PO_SCHEMA,
 						 ''																					AS COMMENT
 						 
@@ -698,8 +703,15 @@ SET NOCOUNT ON;
      
  from 
 (SELECT DISTINCT
+CASE
+WHEN C.CUS_TYPE LIKE '%TRIAL%' 
+THEN 'TRIAL'
+
+WHEN EQH_STATUS_FLAG = 'S'
+AND CMP_NAME LIKE 'BILLI%'
+THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
 -----------------------------------------------TOTALCARE----------------------------------------------------------
- case when eqh_status_flag = 'R' 
+    when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
 	                     --  	         	        	                	        
 
@@ -836,8 +848,7 @@ then 'SIF Non MIF'*/																			--05/11/21 RISM Removed as per query abov
 WHEN ET.ety_name in ( '(None)' )
 then 'QUERY EQUIPMENT TYPES'
 
-WHEN C.CUS_TYPE LIKE '%TRIAL%' 
-THEN 'TRIAL'
+
 
 end
  as MATRIX_TYPE

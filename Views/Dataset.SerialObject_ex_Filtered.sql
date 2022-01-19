@@ -7,7 +7,7 @@ AS
 SELECT        Dataset.SerialObject_DcEx.ID, Dataset.SerialObject_DcEx.MIG_SITE_NAME, Dataset.SerialObject_DcEx.MIG_CREATED_DATE, Dataset.SerialObject_DcEx.MIG_COMMENT, Dataset.SerialObject_DcEx.MCH_CODE, 
                          Dataset.SerialObject_DcEx.MCH_NAME, Dataset.SerialObject_DcEx.CUSTOMER_ID, Dataset.SerialObject_DcEx.PART_NO, Dataset.SerialObject_DcEx.SERIAL_NO, Dataset.SerialObject_DcEx.INSTALLATION_DATE, 
                          Dataset.SerialObject_DcEx.OWNERSHIP, Dataset.SerialObject_DcEx.LOCATION1, Dataset.SerialObject_DcEx.LOCATION2, Dataset.SerialObject_DcEx.NX_LATITUDE, Dataset.SerialObject_DcEx.NX_LONGITUDE, 
-                         Dataset.SerialObject_DcEx.NX_OPERATIONAL_STATUS, Dataset.SerialObject_DcEx.OWNER, Dataset.SerialObject_DcEx.NX_HAS_PEDAL
+                         Dataset.SerialObject_DcEx.NX_OPERATIONAL_STATUS, Dataset.SerialObject_DcEx.OWNER, Dataset.SerialObject_DcEx.NX_HAS_PEDAL, Dataset.SerialObject_DcEx.NX_WARRANTY_END_DATE
 FROM            Dataset.SerialObject_DcEx LEFT OUTER JOIN
                          Dataset.SerialObject_Filter_Override ON Dataset.SerialObject_DcEx.MIG_SITE_NAME = Dataset.SerialObject_Filter_Override.MIG_SITE_NAME AND 
                          Dataset.SerialObject_DcEx.MCH_CODE = Dataset.SerialObject_Filter_Override.MCH_CODE LEFT OUTER JOIN

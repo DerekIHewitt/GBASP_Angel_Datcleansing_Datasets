@@ -19,7 +19,8 @@ CREATE TABLE [Dataset].[Open_Cases_ex]
 [CALLER_EMAIL] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [LANG_CODE_DB] [nvarchar] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [SECOND_CATEGORY] [nvarchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[CONTACT_NAME] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[CONTACT_NAME] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NX_CASE_STATUS] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[Open_Cases_ex] ADD CONSTRAINT [PK_Open_Cases_ex] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]

@@ -7,7 +7,7 @@ AS
 SELECT        ROW_NUMBER() OVER (ORDER BY ex.CUS_Account) AS ID, 'GBASP' AS MIG_SITE_NAME, '' AS MIG_COMMENT, GETDATE() AS MIG_CREATED_DATE, TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)) AS CUSTOMER_ID, 
 LEFT(TRIM(ex.CUS_Company), 100) AS NAME, invoice_customer_info.CUS_PayTerms AS PAY_TERM_ID, ISNULL(TRIM(CONVERT(nvarchar(10), ex.CUS_Credit_Limit)), 0) AS CREDIT_LIMIT, 
 ISNULL(CASE WHEN ex.cus_acct_to_inv = 0 THEN '' ELSE TRIM(CONVERT(VARCHAR(100), ex.cus_acct_to_inv)) END, '') AS INVOICE_CUSTOMER, '' AS INVOICE_SORT_DB, 'FALSE' AS EMAIL_ORDER_CONF_DB, 
-'TRUE' AS EMAIL_INVOICE_DB, ISNULL(CONVERT(VARCHAR(10), ex.CUS_SectorID), '{NULL}') AS CRM_ACCOUNT_TYPE, invoice_customer_info.CUS_PayType AS PAYMENT_METHOD, '' AS PAY_ADDR_DESCRIPTION, 
+'TRUE' AS EMAIL_INVOICE_DB, CASE WHEN ISNULL(TRIM(CONVERT(nvarchar(100), ex.CUS_AcqFrom)), '') IN ('62','64') THEN 'B' ELSE ISNULL(CONVERT(VARCHAR(10), ex.CUS_SectorID), '{NULL}') END AS CRM_ACCOUNT_TYPE, invoice_customer_info.CUS_PayType AS PAYMENT_METHOD, '' AS PAY_ADDR_DESCRIPTION, 
 ISNULL(CONVERT(VARCHAR(50), format(invoice_customer_info.CUS_ACNumber, '00000000')), '') AS PAY_ADDR_ACCOUNT, ISNULL(CONVERT(VARCHAR(100), format(invoice_customer_info.CUS_ACSortCode, '000000')), '') 
 AS PAY_ADDR_SORT_CODE, ISNULL(TRIM(invoice_customer_info.CUS_ACName), '') AS PAY_ADDR_ACC_NAME, '' AS PAY_ADDR_BUILD_SOC_REF, '' AS PAY_ADDR_TRANS_CODE, '' AS PAY_ADDR_OUR_REF, 
 'CA01' AS CREDIT_ANALYST, ISNULL(TRIM(CONVERT(nvarchar(100), ex.CUS_AcqFrom)), '') AS ACQUIRED_FROM_COMP, '' AS ASSOCIATION_NO, '0' AS NX_GROUP_ID, ex.CUS_Charge_VAT AS NX_TAX_CODE, '9999' AS NX_CUST_GRP, 
@@ -72,7 +72,7 @@ isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'SITE' /* 'Consolidate by 
 = 1 THEN CASE WHEN ex.cus_acct_to_inv != 0 AND isnull(invoice_customer_info.cus_invcons, 0) = 0 THEN 'NONE' WHEN isnull(ex.cus_acct_to_inv, 0) 
 = 0 THEN 'NONE' END /* 'No Consolidation'*/ ELSE '' /* This not in RS orignal code but I think required to prevent NULLS being passed out.*/ END AS NX_BR_CONSOLIDATION, REPLACE(ISNULL(TRIM(CONVERT(VARCHAR(100), 
 ex.CUS_INDUSTRY)), ''), '0', '') AS NX_LEGAL_ENTITY_DB, CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.cus_importac)), '') 
-END AS NX_IMPORT_ACCOUNT, /*CASE WHEN ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') = '0' THEN '' ELSE ISNULL(TRIM(CONVERT(VARCHAR(100), ex.CUS_ACGroup)), '') END  */ '' AS NX_ACCOUNT_GROUP
+END AS NX_IMPORT_ACCOUNT, '' AS NX_ACCOUNT_GROUP
 FROM            DatasetProWat.Syn_Customer_ex ex LEFT JOIN
                          DatasetProWat.Syn_Customer_ex AS invoice_customer_info /*customer table joined to itself to pull the invoice account information, as it is its own record in customer*/ ON CASE WHEN ISNULL(ex.cus_acct_to_inv, 0) 
                          = 0 THEN ex.cus_account ELSE ex.cus_acct_to_inv END = invoice_customer_info.cus_account LEFT OUTER JOIN

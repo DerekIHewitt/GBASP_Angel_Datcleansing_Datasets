@@ -11,7 +11,8 @@ SELECT        Dataset.SerialObject_dc.ID, Dataset.SerialObject_dc.MIG_SITE_NAME,
                          ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysIncluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.SerialObject_Filter_Override.IsOnSubsetList, 0), 
                          Dataset.SerialObject_dc.NX_OPERATIONAL_STATUS, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE, Dataset.Filter_Customer(Dataset.SerialObject_dc.MIG_SITE_NAME, 'dc', 
                          ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), 
-                         Dataset.SerialObject_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE)) AS NX_FILTER_STATUS, Dataset.SerialObject_dc.NX_HAS_PEDAL
+                         Dataset.SerialObject_dc.CUSTOMER_ID, Dataset.Customer_Header_dc.NAME, Dataset.Customer_Header_dc.CRM_ACCOUNT_TYPE)) AS NX_FILTER_STATUS, Dataset.SerialObject_dc.NX_HAS_PEDAL, 
+                         Dataset.SerialObject_dc.NX_WARRANTY_END_DATE
 FROM            Dataset.Customer_Filter_Override LEFT OUTER JOIN
                          Dataset.Customer_Header_dc ON Dataset.Customer_Filter_Override.MIG_SITE_NAME = Dataset.Customer_Header_dc.MIG_SITE_NAME AND 
                          Dataset.Customer_Filter_Override.CUSTOMER_ID = Dataset.Customer_Header_dc.CUSTOMER_ID RIGHT OUTER JOIN
@@ -91,7 +92,7 @@ Begin DesignProperties =
    End
    Begin DiagramPane = 
       Begin Origin = 
-         Top = -96
+         Top = -248
          Left = 0
       End
       Begin Tables = 

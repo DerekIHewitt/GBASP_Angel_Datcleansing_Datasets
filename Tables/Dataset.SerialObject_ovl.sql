@@ -17,6 +17,7 @@ CREATE TABLE [Dataset].[SerialObject_ovl]
 [SRC_LONGITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_OPERATIONAL_STATUS] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SRC_WARRANTY_END_DATE] [date] NOT NULL CONSTRAINT [DF_SerialObject_ovl_SRC_WARRANTY_END_DATE] DEFAULT ('1900-01-01'),
 [MCH_NAME] [nvarchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [CUSTOMER_ID] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [PART_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -29,7 +30,8 @@ CREATE TABLE [Dataset].[SerialObject_ovl]
 [LATITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [LONGITUDE] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [OPERATIONAL_STATUS] [nvarchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
-[HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[HAS_PEDAL] [nvarchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[WARRANTY_END_DATE] [date] NULL
 ) ON [PRIMARY]
 GO
 ALTER TABLE [Dataset].[SerialObject_ovl] ADD CONSTRAINT [PK_SerialObject_ovl] PRIMARY KEY CLUSTERED  ([PK]) ON [PRIMARY]
