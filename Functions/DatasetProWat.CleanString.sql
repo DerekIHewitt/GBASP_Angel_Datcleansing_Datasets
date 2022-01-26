@@ -13,6 +13,7 @@ AS
 --	3	28/02/2020	DIH		New code done so data cleansing dossn't report 'self correcting' issues as 'data owner issues' but 'migration auto corrections'
 --	4	05/02/2020	DIH		Put DATALENGTH in line as the replace chages the string length
 --  5   20/01/2021  RJS     Added counter -1 to allow the carriage return line feed to generate cleanse correctly
+--	6	25/01/2022  RYFE	Remove the HOP character ASCII 129 specifically
 Begin
 	/* Original code
 		Return TRIM(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE
@@ -44,7 +45,7 @@ Begin
 				END
 			ELSE
 				BEGIN
-					IF (@BadCharAsc < 32)
+					IF (@BadCharAsc < 32) OR @BadCharAsc = 129						--25/01/2022 RYFE remove HOP character specifically
 						BEGIN
 							SET @Temp = REPLACE(@Temp, @BadChar, '');
 							SET @COUNTER = @COUNTER -1;  --RJS SEE ABOVE

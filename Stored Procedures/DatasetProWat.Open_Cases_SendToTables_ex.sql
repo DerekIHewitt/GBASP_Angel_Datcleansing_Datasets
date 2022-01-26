@@ -13,6 +13,7 @@ GO
 
 --13-01-2022	RYFE	Added Case status
 --18-01-2022	RYFE	Added 12 month closed for complaints
+--20-01-2022    RYFE	Added QST_ID 17,25,26 to be included in the select from quit table
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Open_Cases_SendToTables_ex]
 AS
@@ -59,13 +60,34 @@ SET NOCOUNT ON;
 --THIS IS CURRENT CASE MIGRATION JOB LOAD TEMPLATE--
 'GBASP'					AS MIG_SITE_NAME,
 @CASELOCALID	    AS CASE_LOCAL_ID,
-'Retention Request'		AS TITLE,
+
+CASE 
+	WHEN [QLG_StatusID] = 25 
+	THEN 'Resolutions'
+	WHEN [QLG_StatusID] = 26
+	THEN 'Invoice and Finance'
+	WHEN [QLG_StatusID] = 17
+	THEN 'Failed Collection'
+	WHEN [QLG_StatusID] = 42
+	THEN 'Retention Request'
+	ELSE TRIM(QS.QST_Status)
+	END					AS TITLE,
+
 DBO.CONVERTFROMCLARION([QLG_RecDate])						AS CONTACT_DATE,      --if error change to sysdate
 'UKWL'					AS ORGANIZATION_ID,
 'FALSE'					AS SHOW_EXTERNALLY,   --tick box do we want true or false--
 CONCAT('Contacted By',' ',U.USR_USERNAME,' ','Received Date',' ',DBO.CONVERTFROMCLARION([QLG_RecDate]),' ','Next Date',' ', DBO.CONVERTFROMCLARION([QLG_NextDate]),' ',rtrim(qlg_notes),PVT.COOLERLIST)						
-						AS DESCRIPTION,																																					--SCREENSHOT 4/5/7 OF 11
-'112'					AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, are we only ever loading retention requests in 323 Resolution 110 Invoice Dispute 
+						AS DESCRIPTION,
+						--SCREENSHOT 4/5/7 OF 11
+CASE 
+	WHEN [QLG_StatusID] = 25 
+	THEN '323'
+	WHEN [QLG_StatusID] = 26
+	THEN '110'
+	WHEN [QLG_StatusID] = 17
+	THEN '17'
+	ELSE '112'
+	END					AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, are we only ever loading retention requests in 323 Resolution 110 Invoice Dispute 
 '3'						AS TYPE_ID_DB,            -- is this to be hardcoded as global/local etc
 '103'					AS OUR_SEVERITY_DB,       -- is this to be hardcoded as 3 day sla
 '102'					AS OUR_PRIORITY,          -- is this to be hardcoded as 3 normal
@@ -122,7 +144,7 @@ LEFT JOIN (
 				  LEFT JOIN [DatasetProWat].[Syn_QuitItem_ex] QI ON QI.QUI_ID = QLG.QLG_id
 				 WHERE [QLG_Closed] = 0 
 				 and   QLG_cuseqtoquit > 1
-				 and [QLG_StatusID] = 42
+				 and [QLG_StatusID] in (42,17,25,26)
 				 )
 			 )E
 			 PIVOT
@@ -146,7 +168,7 @@ WHERE --[QLG_Closed] = 0
   (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
-  AND case when [QLG_Closed] = 0 and [QLG_StatusID] = 42 then 'VALID_OPEN_CASE'
+  AND case when [QLG_Closed] = 0 and [QLG_StatusID] in (42,17,25,26) then 'VALID_OPEN_CASE'
       WHEN [QLG_Closed] = 1 AND us.USR_UserID in (
 								624,2637,472,966,529,1264,1155,35,
 								2671,1060,1011,2655,605,500,650,569,642
@@ -228,8 +250,12 @@ left join [DatasetProWat].[Syn_UsersMain_ex] us      ON us.usr_userid =  COM.COM
 --left join [DatasetProWat].[Syn_UsersMain_ex] US        ON US.USR_USERID  = QLG.QLG_OWNEDBYID
 --left join [DatasetProWat].[Syn_QuitStat_ex]QS          ON QS.qst_id      = qlg.qlg_statusid
 --LEFT JOIN [DatasetProWat].[Syn_QuitItem_ex] QI         ON QI.QUI_ID      = QLG.QLG_id
+ LEFT OUTER JOIN
+        Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
 
 where (COM.COM_CloseDate = 0 OR dbo.convertfromclarion(COM.COM_CloseDate) > DATEADD(year, -1, @CUTDATE))		--18/01/2022 RYFE Bring one years closed data
+AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
   UPDATE [Dataset].[Open_Cases_ex]
   SET CASE_LOCAL_ID = @CASELOCALID,@CASELOCALID = @CASELOCALID + 1

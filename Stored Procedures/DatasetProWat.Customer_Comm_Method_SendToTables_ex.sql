@@ -24,6 +24,7 @@ GO
 --  7    RJS	03/02/2021  Procedure failed on NULL so catered for isnull in intial SELECT INTO
 --		 RYFE	19-02-2021	Created based on GBASP Data Cleansing Customer_Comm_Method_SendForTransform
 --       RYFE 2021-09-13 Added new rules based on Lisas comments
+--		 RYFE 2022/01/24 Filtered out NO MOBILE values and created more filteres to avoid transform errors
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Comm_Method_SendToTables_ex]
 --(
@@ -51,9 +52,13 @@ SET NOCOUNT ON;
 		  TRIM([DatasetProWat].[CleanString](CUS_DMName))	AS CUS_DMName,  -- added 20-02-2020
 		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''),1) = ';' THEN 
 			   SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''))-1)
+			   WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''),1) = '.' THEN								--24/01/2022 RYFE remove the last .
+			   SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ',''))-1)
 			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email1)),' ','') END  
 																			AS CUS_Email1,
 		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''),1) = ';' THEN
+		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''))-1)
+			   WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''),1) = '.' THEN								--24/01/2022 RYFE remove the last .
 		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ',''))-1)
 			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Email2)),' ','') END    
 																			AS CUS_Email2,
@@ -63,6 +68,8 @@ SET NOCOUNT ON;
 		  TRIM([DatasetProWat].[CleanString](CUS_Fax2))	AS CUS_Fax2,
 		  CASE WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''),1) = ';' THEN
 		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''))-1)
+			   WHEN RIGHT(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''),1) = '.' THEN						--24/01/2022 RYFE remove the last .
+		       SUBSTRING(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ','') , 1 , LEN(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ',''))-1)
 			   ELSE REPLACE(TRIM([DatasetProWat].[CleanString](CUS_DMEmail)),' ','') END 
 																			AS CUS_DMEmail,
 		  TRIM([DatasetProWat].[CleanString](CUS_DMFax))	AS CUS_DMFax,
@@ -70,8 +77,8 @@ SET NOCOUNT ON;
 		  TRIM([DatasetProWat].[CleanString](CUS_Mobile1))	AS CUS_Mobile1,							--13/09/2021 RYFE added according to latest rules
 		  TRIM([DatasetProWat].[CleanString](CUS_Mobile2))	AS CUS_Mobile2,							--13/09/2021 RYFE added according to latest rules
 		  TRIM([DatasetProWat].[CleanString](CUS_DMMob))	AS CUS_DMMob,
-		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Ext1)),'')	AS CUS_Ext1,
-		  ISNULL(TRIM([DatasetProWat].[CleanString](CUS_Ext2)),'')	AS CUS_Ext2,
+		  ISNULL(REPLACE(REPLACE(REPLACE(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Ext1)),'    ',''),'opt',''),' ',''),'hold',''),'')	AS CUS_Ext1,
+		  ISNULL(REPLACE(REPLACE(REPLACE(REPLACE(TRIM([DatasetProWat].[CleanString](CUS_Ext2)),'    ',''),'opt',''),' ',''),'hold',''),'')	AS CUS_Ext2,
 		  TRIM(CUS_HHDNMethod) AS CUS_HHDNMethod
 		INTO		#tmpCustomers
 		FROM		DatasetProWat.Syn_Customer_ex			WITH (NOLOCK)		-- view for In-Scope Customers from Extraction DB
@@ -119,7 +126,19 @@ SET NOCOUNT ON;
 		INTO					#CustomerRECS
 		FROM
 		#tmpCustomers
-		WHERE ISNULL(CUS_Email1,'') <> ''
+		WHERE ISNULL(CUS_Email1,'') <> '' AND  ISNULL(CUS_Email1,'') NOT IN  (
+  'UNECONOMICAL',
+'ADMINISTRATION',
+'LIQUIDATION',
+'DISSOLVED',
+'FAILEDLEGAL',
+'TBC',
+'NF',
+'NOFAX',
+'NUMBER ON TICKET',
+'DONOTKEYDELIVERIES',
+'NOEMAILS',
+'0000')
 
 
 
@@ -145,8 +164,21 @@ SET NOCOUNT ON;
 		  ''					AS [EXT_NO],
 		  ''					AS [POD_EMAIL_DB]
 		FROM		#tmpCustomers
-		WHERE ISNULL(CUS_Email2,'') <> ''
+		WHERE ISNULL(CUS_Email2,'') <> '' AND ISNULL(CUS_Email2,'') <> 'NULL'
 		-- AND ISNULL(CUS_Email2,'') <> ISNULL(CUS_Email1,'') -- removed duplication check, if it exists we want it as an AR Customer Contact ARG 28/02/2020
+		AND  ISNULL(CUS_Email2,'') NOT IN  (
+		 'UNECONOMICAL',
+		'ADMINISTRATION',
+		'LIQUIDATION',
+		'DISSOLVED',
+		'FAILEDLEGAL',
+		'TBC',
+		'NF',
+		'NOFAX',
+		'NUMBER ON TICKET',
+		'DONOTKEYDELIVERIES',
+		'NOEMAILS',
+		'0000')
 
 
 	UNION ALL
@@ -169,6 +201,19 @@ SET NOCOUNT ON;
 		  ''					AS [POD_EMAIL_DB]
 		FROM	#tmpCustomers
 		WHERE ISNULL(CUS_Tel,'') <> ''
+		AND  ISNULL(CUS_Tel,'') NOT IN  (
+		 'UNECONOMICAL',
+		'ADMINISTRATION',
+		'LIQUIDATION',
+		'DISSOLVED',
+		'FAILEDLEGAL',
+		'TBC',
+		'NF',
+		'NOFAX',
+		'NUMBER ON TICKET',
+		'DONOTKEYDELIVERIES',
+		'NOEMAILS',
+		'0000')
 
 
 	UNION ALL
@@ -194,6 +239,20 @@ SET NOCOUNT ON;
 		WHERE	ISNULL(CUS_Tel2,'') <> ''
 			AND ISNULL(CUS_Tel2,'') <> ISNULL(CUS_Tel,'') 
 			AND ISNULL(TRIM(CUS_Contact1),'') <> ISNULL(TRIM(CUS_Contact2),'')  -- need to eliminate duplicates if COMM_NAME and METHOD are the same ARG 24/03/2020
+			AND ISNULL(CUS_Tel2,'') NOT LIKE ('option%')
+			AND  ISNULL(CUS_Tel2,'') NOT IN  (
+		 'UNECONOMICAL',
+		'ADMINISTRATION',
+		'LIQUIDATION',
+		'DISSOLVED',
+		'FAILEDLEGAL',
+		'TBC',
+		'NF',
+		'NOFAX',
+		'NUMBER ON TICKET',
+		'DONOTKEYDELIVERIES',
+		'NOEMAILS',
+		'0000')
 
 
 	UNION ALL
@@ -216,7 +275,20 @@ SET NOCOUNT ON;
 		  ''					AS [EXT_NO],
 		  ''					AS [POD_EMAIL_DB]
 		FROM	#tmpCustomers
-		WHERE ISNULL(CUS_Fax,'') <> ''
+		WHERE ISNULL(CUS_Fax,'') <> '' AND ISNULL(CUS_Fax,'') NOT LIKE ('option%')
+		AND  ISNULL(CUS_Fax,'') NOT IN  (
+		 'UNECONOMICAL',
+		'ADMINISTRATION',
+		'LIQUIDATION',
+		'DISSOLVED',
+		'FAILEDLEGAL',
+		'TBC',
+		'NF',
+		'NOFAX',
+		'NUMBER ON TICKET',
+		'DONOTKEYDELIVERIES',
+		'NOEMAILS',
+		'0000')
 
 
 	UNION ALL
@@ -243,6 +315,19 @@ SET NOCOUNT ON;
 			--  AND ISNULL(CUS_Fax2,'') <> ISNULL(CUS_Fax,'') -- removed checking for duplicates, if they exist we want them brought over even if the same ARG 28/02/2020
 			AND ISNULL(CUS_Fax2,'') <> ISNULL(CUS_Fax,'')
 			AND ISNULL(TRIM(CUS_Contact1),'') <> ISNULL(TRIM(CUS_Contact2),'')  -- need to eliminate duplicates if COMM_NAME and METHOD are the same ARG 24/03/2020
+			AND  ISNULL(CUS_Fax2,'') NOT IN  (
+		 'UNECONOMICAL',
+		'ADMINISTRATION',
+		'LIQUIDATION',
+		'DISSOLVED',
+		'FAILEDLEGAL',
+		'TBC',
+		'NF',
+		'NOFAX',
+		'NUMBER ON TICKET',
+		'DONOTKEYDELIVERIES',
+		'NOEMAILS',
+		'0000')
 
 
 	UNION ALL
@@ -354,7 +439,7 @@ SET NOCOUNT ON;
 		  ''					AS [EXT_NO],
 		  ''					AS [POD_EMAIL_DB]
 		FROM	#tmpCustomers
-		WHERE ISNULL(CUS_Mobile1,'') <> ''
+		WHERE ISNULL(CUS_Mobile1,'') <> '' AND ISNULL(CUS_Mobile1,'') <> '.NO  MOBILE.'	 AND ISNULL(CUS_Mobile1,'') NOT LIKE ('%NO  MOBILE%')	AND ISNULL(CUS_Mobile1,'') NOT LIKE ('%no mobile%')	--24/01/2022 Added to filter out the NO MOBILES
 
 	UNION ALL
 
