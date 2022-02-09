@@ -8,19 +8,19 @@ SELECT        'GBASP' AS MIG_SITE_NAME, '' AS MIG_COMMENT, getdate() AS MIG_CREA
                          CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35), '') = '' THEN CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '.') 
                          = '' THEN '.' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '.') END ELSE Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35) END AS ADDRESS1, 
                          CASE WHEN ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr1, '', 35), '') = '' THEN '' ELSE ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr2, '', 35), '') END AS ADDRESS2, 
-                         Dataset.[ConvertMaxLenCleanString](CUS_PCode, '''', 35) AS ZIP_CODE, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr3, '', 35), '{NULL}') AS CITY, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_County, '', 35), '') 
+                         Dataset.[ConvertMaxLenCleanString](CUS_PCode, '''./\-!', 35) AS ZIP_CODE, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_Addr3, '', 35), '{NULL}') AS CITY, ISNULL(Dataset.[ConvertMaxLenCleanString](CUS_County, '', 35), '') 
                          AS COUNTY, '' AS [STATE], '' AS VAT_NO, '' AS SPECIAL_INS, ISNULL(Dataset.[ConvertMaxLenCleanString](TRIM(CUS_Instruct1) + CASE WHEN trim(isnull(CUS_Instruct2, '')) <> '' THEN ' ' + trim(CUS_Instruct2) 
                          ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct3, '')) <> '' THEN ' ' + trim(CUS_Instruct3) ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct4, '')) <> '' THEN ' ' + trim(CUS_Instruct4) 
-                         ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct5, '')) <> '' THEN ' ' + trim(CUS_Instruct5) ELSE '' END, '''', 500), '') AS WORK_ORDER_NOTES, '' AS NX_DELIVERY_COUNTRY_DB, 
-                         '' AS NX_SUPPLY_COUNTRY_DB, '' AS NX_LONGITUDE, '' AS NX_LATITUDE, '' AS NX_ADDRESS_ID, '' AS NX_DELIVERY_TERMS, '' AS NX_SHIP_VIA_CODE, '' AS NX_IN_CITY, '' AS NX_TAX_WITHHOLDING_DB, 
-                         '' AS NX_TAX_ROUNDING_METHOD_DB, '' AS NX_TAX_ROUNDING_LEVEL_DB, '' AS NX_TAX_EXEMPT_DB, '' AS NX_INTRASTAT_EXEMPT_DB, Dataset.ConvertProwatTime(CUS_OpenAM) AS NX_OPENING_AM, 
-                         Dataset.ConvertProwatTime(CUS_CloseAM) AS NX_CLOSING_AM, Dataset.ConvertProwatTime(CUS_OpenPM) AS NX_OPENING_PM, Dataset.ConvertProwatTime(CUS_ClosePM) AS NX_CLOSING_PM, 
-                         CUS_OpenAMDay1 AS NX_MON_AM, CUS_OpenPMDay1 AS NX_MON_PM, CUS_OpenAMDay2 AS NX_TUE_AM, CUS_OpenPMDay2 AS NX_TUE_PM, CUS_OpenAMDay3 AS NX_WED_AM, CUS_OpenPMDay3 AS NX_WED_PM, 
-                         CUS_OpenAMDay4 AS NX_THU_AM, CUS_OpenPMDay4 AS NX_THU_PM, CUS_OpenAMDay5 AS NX_FRI_AM, CUS_OpenPMDay5 AS NX_FRI_PM, CUS_OpenAMDay6 AS NX_SAT_AM, CUS_OpenPMDay6 AS NX_SAT_PM, 
-                         CUS_OpenAMDay7 AS NX_SUN_AM, CUS_OpenPMDay7 AS NX_SUN_PM, 'TRUE' AS NX_DEF_ADDRESS_DELIVERY, 'TRUE' AS NX_DEF_ADDRESS_INVOICE, 'TRUE' AS NX_DEF_ADDRESS_PAY, 
-                         '' AS NX_DEF_ADDRESS_HOME, '' AS NX_DEF_ADDRESS_PRIMARY, '' AS NX_DEF_ADDRESS_SECONDARY, 'TRUE' AS NX_DEF_ADDRESS_VISIT, '' AS NX_TAX_REGIME_DB, '' AS NX_COUNTRY_DB, '' AS NX_COMPANY, 
-                         ROW_NUMBER() OVER (ORDER BY CUS_Account) AS ID, Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
-ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), CUS_Account)), LEFT(TRIM(CUS_Company), 100), ISNULL(CUS_Type, '{NULL}')) AS NX_FILTER_STATUS
+                         ELSE '' END + CASE WHEN trim(isnull(CUS_Instruct5, '')) <> '' THEN ' ' + trim(CUS_Instruct5) ELSE '' END, '''', 500), '') AS WORK_ORDER_NOTES, '' AS NX_DELIVERY_COUNTRY_DB, '' AS NX_SUPPLY_COUNTRY_DB, 
+                         '' AS NX_LONGITUDE, '' AS NX_LATITUDE, '' AS NX_ADDRESS_ID, '' AS NX_DELIVERY_TERMS, '' AS NX_SHIP_VIA_CODE, '' AS NX_IN_CITY, '' AS NX_TAX_WITHHOLDING_DB, '' AS NX_TAX_ROUNDING_METHOD_DB, 
+                         '' AS NX_TAX_ROUNDING_LEVEL_DB, '' AS NX_TAX_EXEMPT_DB, '' AS NX_INTRASTAT_EXEMPT_DB, Dataset.ConvertProwatTime(CUS_OpenAM) AS NX_OPENING_AM, Dataset.ConvertProwatTime(CUS_CloseAM) 
+                         AS NX_CLOSING_AM, Dataset.ConvertProwatTime(CUS_OpenPM) AS NX_OPENING_PM, Dataset.ConvertProwatTime(CUS_ClosePM) AS NX_CLOSING_PM, CUS_OpenAMDay1 AS NX_MON_AM, 
+                         CUS_OpenPMDay1 AS NX_MON_PM, CUS_OpenAMDay2 AS NX_TUE_AM, CUS_OpenPMDay2 AS NX_TUE_PM, CUS_OpenAMDay3 AS NX_WED_AM, CUS_OpenPMDay3 AS NX_WED_PM, CUS_OpenAMDay4 AS NX_THU_AM, 
+                         CUS_OpenPMDay4 AS NX_THU_PM, CUS_OpenAMDay5 AS NX_FRI_AM, CUS_OpenPMDay5 AS NX_FRI_PM, CUS_OpenAMDay6 AS NX_SAT_AM, CUS_OpenPMDay6 AS NX_SAT_PM, CUS_OpenAMDay7 AS NX_SUN_AM, 
+                         CUS_OpenPMDay7 AS NX_SUN_PM, 'TRUE' AS NX_DEF_ADDRESS_DELIVERY, 'TRUE' AS NX_DEF_ADDRESS_INVOICE, 'TRUE' AS NX_DEF_ADDRESS_PAY, '' AS NX_DEF_ADDRESS_HOME, 
+                         '' AS NX_DEF_ADDRESS_PRIMARY, '' AS NX_DEF_ADDRESS_SECONDARY, 'TRUE' AS NX_DEF_ADDRESS_VISIT, '' AS NX_TAX_REGIME_DB, '' AS NX_COUNTRY_DB, '' AS NX_COMPANY, ROW_NUMBER() OVER (ORDER BY CUS_Account)
+ AS ID, Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0),
+ TRIM(CONVERT(varchar(100), CUS_Account)), LEFT(TRIM(CUS_Company), 100), ISNULL(CUS_Type, '{NULL}')) AS NX_FILTER_STATUS
 FROM            DatasetProWat.Syn_Customer_ex LEFT OUTER JOIN
                          Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
 WHERE        (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 

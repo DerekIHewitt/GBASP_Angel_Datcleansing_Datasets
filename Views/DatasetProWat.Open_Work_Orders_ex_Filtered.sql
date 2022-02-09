@@ -12,6 +12,7 @@ GO
 
 
 
+
 CREATE VIEW [DatasetProWat].[Open_Work_Orders_ex_Filtered]
 AS
 
@@ -44,7 +45,10 @@ ELSE cast(o.ORD_ORDREASON as varchar (16)) END AS WORK_TYPE  --will need to link
 ,'' AS SLA_ID	
 ,'' AS EXCLUDE_FROM_SCHEDULING	
 ,1 AS DELIVERY_ADDRESS_ID	
-,'' AS STANDARD_JOB_ID	
+,CASE WHEN o.ORD_OrdReason = 135 AND ol.ORL_StockCode =  'GEN_INRAIL' THEN 'INSRAIL-POU' 
+	  WHEN o.ORD_OrdReason = 135 AND ol.ORL_StockCode =  'GEN_IMPROV' THEN 'IMP-POU'
+	  ELSE '' END
+	  AS STANDARD_JOB_ID	
 ,'' AS STANDARD_JOB_SITE
 ,'' AS STANDARD_JOB_REVISION
 ,'' AS STANDARD_JOB_DESCRIPTION

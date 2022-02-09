@@ -10,10 +10,10 @@ GO
   --2.	Has open transactions
   --3.	Is an Invoice Account - a value in cus_acct_to_inv in Prowat against a delivery customer
   --4.	Is Key Account only   – a value in the cus_pricebookac in Prowat against a delivery customer
-  --5.	Has confirmed orders generated in the last 24 months
-  --6.	Has a Created Date in the last 24 months
+  --5.	Has confirmed orders generated in the last 12 months
+  --6.	Has a Created Date in the last 12 months
 
---RISM 2021-05-20 Created based on GBASP Data Cleansing po send for transform
+--  RISM 2021-05-20 Created based on GBASP Data Cleansing po send for transform
 --7 RYFE 2021-06-09 Modified according to new script
 --8 RISM 2021-06-28 Added declarative date as need to have 2 years from the cutover date rather than getdate
                    as each time you run it moves the timeline, but dont want to hardcode so can add the 
@@ -22,6 +22,7 @@ GO
 -10 RISM 2021-07-13 Requested to reduce points 5 & 6 down to 12 months
 -11 RISM 2021-07-13 Changed the sagetran join got link to the delivery account to sag_delacct and the invoice account to sag_account to pull the right balance at delivery level
 -12 RISM 2021-08-25 Removed --> AND  C.CUS_ACCOUNT > 90 due to internal accounts non stock needing to be included
+-13 RISM 2022-01-28 This has been requested to specifically be included even though doesnt hit the logic account 1234781 needs to come through regardless
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Customer_Header_Filter_SendToTables_ex]
 
@@ -65,6 +66,7 @@ SET NOCOUNT ON;
 					 WHEN ISNULL(S.SAG_UNPAID,0) <> 0                            THEN 1
 					 WHEN O.ORDERNUM IS NOT NULL and C.CUS_COMPANY NOT LIKE 'ZZZ%' THEN 1
 					 WHEN dbo.convertfromclarion(ISNULL(C.CUS_CREATED,0)) > @cutdate -365 and C.CUS_COMPANY NOT LIKE 'ZZZ%' THEN 1 
+				     WHEN C.CUS_ACCOUNT = 1234781 THEN 1                                                 --RISM 28/01/2022 Customer voice internal account, this needs to be included for business reasons
 					 ELSE 0 END																			AS isAlwaysIncluded,
 				
         
@@ -76,7 +78,7 @@ SET NOCOUNT ON;
 					 WHEN ISNULL(SAG_UNPAID,0) <> 0                              THEN 1
 					 WHEN O.ORDERNUM IS NOT NULL and C.CUS_COMPANY NOT LIKE 'ZZZ%' THEN 1
 					 WHEN dbo.convertfromclarion(ISNULL(C.CUS_CREATED,0)) > @cutdate -365 and C.CUS_COMPANY NOT LIKE 'ZZZ%' THEN 1 --IF CREATED IN LAST 12 MONTHS AND IS NOT A ZZZ THEN ALOW THROUGH
-     
+					 WHEN C.CUS_ACCOUNT = 1234781 THEN 1												--RISM 28/01/2022 Customer voice internal account, this needs to be included for business reasons
 					 ELSE 0 END
 		    	 = 1 THEN 0 ELSE 1 END																    AS isAlwaysExcluded,
 
