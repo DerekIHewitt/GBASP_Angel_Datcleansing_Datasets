@@ -13,6 +13,7 @@ GO
 
 
 
+
 CREATE VIEW [DatasetProWat].[Open_Work_Orders_ex_Filtered]
 AS
 
@@ -81,7 +82,7 @@ AND (O.ORD_OrdReason NOT IN (4,35,91,107,123))
 
 AND (O.ORD_OrdReason IN (1, 3,  5, 8, 10, 37, 39, 89, 101, 103, 106, 108, 111, 113, 115, 117, 119, 122, 124, 127, 129, 131, 132, 
                          133, 134, 135, 136, 137))
-and DBO.CONVERTFROMCLARION(ORD_REQUEST_DATE) > '2019-12-31'
+and DBO.CONVERTFROMCLARION(ORD_REQUEST_DATE) > '2021-03-31'
 AND (Dataset.Filter_Customer('GBASP', 'ex', 
                          ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), 
                          C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
