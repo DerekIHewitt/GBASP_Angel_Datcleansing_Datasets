@@ -1,2 +1,2 @@
-CREATE SYNONYM [DatasetProWat].[Syn_CusRoute_ex] FOR [GBASP_Angel_20211118_032_Post_Bill].[dbo].[Cusroute]
+CREATE SYNONYM [DatasetProWat].[Syn_Cusroute_ex] FOR [GBASP_Angel_20220215_FDR3_036].[dbo].[Cusroute]
 GO

@@ -707,9 +707,9 @@ CASE
 WHEN C.CUS_TYPE LIKE '%TRIAL%' 
 THEN 'TRIAL'
 
---WHEN EQH_STATUS_FLAG = 'S'																	--Ryfe commented out 16/02/2022
---AND CMP_NAME LIKE 'BILLI%'
---THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
+WHEN EQH_STATUS_FLAG = 'S'
+AND CMP_NAME LIKE 'BILLI%'
+THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
 -----------------------------------------------TOTALCARE----------------------------------------------------------
     when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
