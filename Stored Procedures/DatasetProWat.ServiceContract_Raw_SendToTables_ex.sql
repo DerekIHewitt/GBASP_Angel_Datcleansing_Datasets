@@ -41,6 +41,7 @@ GO
 --RISM		   06-02-2022   Amended Revaluation Type to cater for some returned NULLS on price schemes 2/6/7
 --RYFE         06-01-2022   Add TRIAL customers to the top of case statement
 --RISM         18-01-2022   Acquisition type (cmp_name) BILLI with Sold S status should not create a service contract. added underneath TRIAL case statement
+--RISM		   19-02-2022   Remove Billi Sold omission logic, so will allow Billi Sold to come through if revenue/service criteria are met
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -707,9 +708,9 @@ CASE
 WHEN C.CUS_TYPE LIKE '%TRIAL%' 
 THEN 'TRIAL'
 
-WHEN EQH_STATUS_FLAG = 'S'
-AND CMP_NAME LIKE 'BILLI%'
-THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
+--WHEN EQH_STATUS_FLAG = 'S'
+--AND CMP_NAME LIKE 'BILLI%'																	--RISM 02-19-22 Remmed out so Billi sold come through
+--THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
 -----------------------------------------------TOTALCARE----------------------------------------------------------
     when eqh_status_flag = 'R' 
        AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')

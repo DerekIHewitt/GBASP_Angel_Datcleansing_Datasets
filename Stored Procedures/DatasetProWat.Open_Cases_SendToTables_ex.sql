@@ -14,6 +14,7 @@ GO
 --13-01-2022	RYFE	Added Case status
 --18-01-2022	RYFE	Added 12 month closed for complaints
 --20-01-2022    RYFE	Added QST_ID 17,25,26 to be included in the select from quit table
+--23-02-2022    RYFE	Added logic according email from Lisa 22/02/2022
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Open_Cases_SendToTables_ex]
 AS
@@ -22,7 +23,7 @@ SET NOCOUNT ON;
 
 	DECLARE @MIG_SITENAME varchar(5) = 'GBASP';
 	DECLARE @CASELOCALID INT         = 2106121  --NEED TO CHECK THIS EACH TIME FROM THE MAX CASE ID IN THE TARGET ENVIRONMENT
-	DECLARE @CUTDATE varchar (10)    = '2022-01-17'
+	DECLARE @CUTDATE varchar (10)    = '2022-02-19'
 	--DECLARE @CUTOFFDATE VARCHAR(10)  = '2020-11-15'
 	--DECLARE @FilterMode int = Dataset.Filter_Mode('dc','Customer');
 
@@ -61,17 +62,18 @@ SET NOCOUNT ON;
 'GBASP'					AS MIG_SITE_NAME,
 @CASELOCALID	    AS CASE_LOCAL_ID,
 
-CASE 
-	WHEN [QLG_StatusID] = 25 
-	THEN 'Resolutions'
-	WHEN [QLG_StatusID] = 26
-	THEN 'Invoice and Finance'
-	WHEN [QLG_StatusID] = 17
-	THEN 'Failed Collection'
-	WHEN [QLG_StatusID] = 42
-	THEN 'Retention Request'
-	ELSE TRIM(QS.QST_Status)
-	END					AS TITLE,
+--CASE 
+	--WHEN [QLG_StatusID] = 25 
+	--THEN 'Resolutions'
+	--WHEN [QLG_StatusID] = 26
+	--THEN 'Invoice and Finance'
+	--WHEN [QLG_StatusID] = 17
+	--THEN 'Failed Collection'
+	--WHEN [QLG_StatusID] = 42
+	--THEN 'Retention Request'
+	--ELSE TRIM(QS.QST_Status)
+	--END					
+trim(QS.QST_Status)		AS TITLE,
 
 DBO.CONVERTFROMCLARION([QLG_RecDate])						AS CONTACT_DATE,      --if error change to sysdate
 'UKWL'					AS ORGANIZATION_ID,
@@ -80,12 +82,18 @@ CONCAT('Contacted By',' ',U.USR_USERNAME,' ','Received Date',' ',DBO.CONVERTFROM
 						AS DESCRIPTION,
 						--SCREENSHOT 4/5/7 OF 11
 CASE 
-	WHEN [QLG_StatusID] = 25 
+	WHEN [QLG_StatusID] in (35,36,37,38)
 	THEN '323'
-	WHEN [QLG_StatusID] = 26
-	THEN '110'
-	WHEN [QLG_StatusID] = 17
-	THEN '17'
+	WHEN [QLG_StatusID] in (56,60)
+	THEN '341'
+	WHEN [QLG_StatusID] in (52,53,54,80)
+	THEN '322'
+	WHEN [QLG_StatusID] = 5
+	THEN '104'
+	WHEN [QLG_StatusID] = 48
+	THEN '321'
+	WHEN [QLG_StatusID] = 49
+	THEN '106'
 	ELSE '112'
 	END					AS CASE_CATEGORY_ID_DB,   -- is this to be hardcoded, are we only ever loading retention requests in 323 Resolution 110 Invoice Dispute 
 '3'						AS TYPE_ID_DB,            -- is this to be hardcoded as global/local etc
@@ -97,9 +105,23 @@ QLG_ACCOUNT				AS CUSTOMER_ID,																																					--SCREENSHOT 
 'UKWL'					AS CUSTOMER_SUPPORT_ORG,  --is this UKWL as per ORGANIZATION_ID
 ''						AS CALLER_EMAIL,          -- IS THIS REQUIRED TO BE POPULATED
 'en'					AS LANG_CODE_DB
-,QRE_REASON      AS SECOND_CATEGORY  -- screenshot 3 of 11 (dropwdown in ifs doesnt seem to have any values- how does this work)
-,qlg_contname    as CONTACT_NAME       -- 6 of 11
+
 ,CASE 
+ WHEN QLG.QLG_QREASONID = 17
+ THEN 'Failed Collection'
+ WHEN QLG.QLG_QREASONID = 20
+ THEN 'Lost Cooler'
+ WHEN QLG.QLG_QREASONID = 21
+ THEN 'Write off'
+ WHEN [QLG_StatusID] IN (35,36,37,38,5,48)
+ THEN ''
+ ELSE QRE_REASON      
+ END					AS SECOND_CATEGORY  -- screenshot 3 of 11 (dropwdown in ifs doesnt seem to have any values- how does this work)
+
+,qlg_contname    as CONTACT_NAME       -- 6 of 11
+,CASE
+ WHEN [QLG_StatusID] IN (8,59)
+      THEN  'CLOSED'
  WHEN [QLG_Closed] = 0 
       THEN 'OPEN'
       ELSE 'CLOSED' 
