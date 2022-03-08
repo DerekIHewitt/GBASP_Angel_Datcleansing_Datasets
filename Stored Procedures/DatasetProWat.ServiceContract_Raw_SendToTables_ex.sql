@@ -42,6 +42,7 @@ GO
 --RYFE         06-01-2022   Add TRIAL customers to the top of case statement
 --RISM         18-01-2022   Acquisition type (cmp_name) BILLI with Sold S status should not create a service contract. added underneath TRIAL case statement
 --RISM		   19-02-2022   Remove Billi Sold omission logic, so will allow Billi Sold to come through if revenue/service criteria are met
+--RISM		   28-02-2022   Added ,'Glass Washer','Ice Maker','Air Purifier' to the list of equipment types
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[ServiceContract_Raw_SendToTables_ex]
 
@@ -713,7 +714,7 @@ THEN 'TRIAL'
 --THEN 'BILLI-SOLD'																				--RISM 18-01-22 SOLD BILLI were making contract records so this should stop it
 -----------------------------------------------TOTALCARE----------------------------------------------------------
     when eqh_status_flag = 'R' 
-       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	                     --  	         	        	                	        
 
 	-- and isnull(eqh_pwfreq,0) = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in -- 07/10/2021 Ryfe added isnull
@@ -726,7 +727,7 @@ THEN 'TRIAL'
 then 'MIF - Totalcare only'
 -----------------------------------------------------------newest contract addition-----------------------------------------------
    when eqh_status_flag = 'R' 
-       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	 --and isnull(eqh_pwfreq,0) = 0 --RS i believe we do not wish to have this in the rules anymore, or do we want it still in -- 07/10/2021 Ryfe added isnull
 	   and isnull(eqh_i_freq,0) > 0
 	   --and (eqh_rental_amnt) > 0
@@ -754,7 +755,7 @@ then 'Non MIF Rental Only'
 
 ------------------------------------RENTAL ONLY MIF SANI BY ACTIVITY RO/SOOE--------------------------------------------------
 when eqh_status_flag = 'R' 
-       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	 --and isnull(eqh_pwfreq,0) = 0			-- 07/10/2021 Ryfe added isnull
 	   and isnull(eqh_i_freq,0) > 0
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
@@ -767,7 +768,7 @@ then 'MIF - Rental Only'
 
 -----------------------------------RENTAL ONLY MIF FUBAR----------------------------------------------------------
 when eqh_status_flag = 'R' 
-       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	   --AND isnull(eqh_i_freq,0) = 0  RISM 05/11/21 AJ REQUEST THIS IS TO BE REMOVED FROM VALIDATION
 	   AND isnull(eqh_i_freq,0) * (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0  --RISM 05-11-2021 Line above removed in isolation and added to freq * price = 0
 	   AND isnull(eqh_frequency,0) * isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN isnull(EQH_SaniPrice,0) ELSE PB.PRI_Price END,isnull(st_san.sto_price,0)) = 0 --RISM 05-11-2021 freq * price
@@ -790,7 +791,7 @@ then 'Sold Non MIF'
 
 ------------------------------------------MAINTENANCE ONLY SIF GOLD---------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
-       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	 --and isnull(eqh_pwfreq,0) = 0				-- 07/10/2021 Ryfe added isnull
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
 	   and (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0
@@ -805,7 +806,7 @@ then 'Maintenance Only SIF'
 
 ------------------------------------------MAINTENANCE ONLY SIF SILVER---------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
-       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	 --and isnull(eqh_pwfreq,0) = 0				-- 07/10/2021 Ryfe added isnull
 	   --and eqh_i_freq = 0  --DO WE NEED AN INVOICE FREQ FOR THE MAINTENANCE TO GENERATE???
 	   and (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0
@@ -821,7 +822,7 @@ and EQH_M_Stock_Code in ('FIX_SILVER','GEN_BLSILV','GENSILV1ST','SILV_PLUS1','SI
 then 'Maintenance Only SIF-SILVER'
 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 when eqh_status_flag = 'S' 
-       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	 --and isnull(eqh_pwfreq,0) = 0			-- 07/10/2021 Ryfe added isnull
 	   and isnull(eqh_i_freq,0) = 0					-- 07/10/2021 Ryfe added isnull
 	   --and (eqh_rental_amnt+eqh_c_value+eqh_sani_amnt) > 0
@@ -834,7 +835,7 @@ when eqh_status_flag = 'S'
 then 'Sani Only SIF'
 -----------------------------------SOLD MIF FUBAR----------------------------------------------------------
 when eqh_status_flag = 'S' 
-       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+       AND ET.ety_name IN ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 	-- AND isnull(EQH_M_FREQ,0) = 0
 	   AND isnull(eqh_i_freq,0) * (isnull(eqh_rental_amnt,0)+isnull(eqh_c_value,0)+isnull(eqh_sani_amnt,0)) = 0 --RISM 05-11-2021 freq * price
 	   AND isnull(eqh_frequency,0) * isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN isnull(EQH_SaniPrice,0) ELSE PB.PRI_Price END,isnull(st_san.sto_price,0)) = 0 --RISM 05-11-2021 freq * price
@@ -843,7 +844,7 @@ when eqh_status_flag = 'S'
 then 'FUBAR'
 -------------------------------------------------------------------------------------------------------------
 /*when eqh_status_flag = 'S'
-AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks' ,'Management Fee', 'Vending m/c')
+AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks' ,'Management Fee', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
 then 'SIF Non MIF'*/																			--05/11/21 RISM Removed as per query above. Should be captured as Sold Non Mif
 
 WHEN ET.ety_name in ( '(None)' )
@@ -858,11 +859,11 @@ end
   AND ET.ety_name IN ('Recycling Scheme','Ancilliaries & Racks','Management Fee')
   then 'Non MIF' 
   when eqh_status_flag = 'S'
-  and ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+  and ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
   then 'SIF'
 
   when eqh_status_flag = 'R'
-  and ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c')
+  and ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier')
   then 'MIF'
 
   end 
@@ -923,7 +924,7 @@ END AS  FINALMAINTPRICE																							--RISM         11-06-2021 REPLACES
 , concat(eqh_frequency,eqh_s_span) as Sani_Span
 ,isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN isnull(EQH_SaniPrice,0) ELSE PB.PRI_Price END,st_san.sto_price) AS FINAL_SANI_PRICE
 ,CASE WHEN eqh_frequency >0 AND isnull(CASE WHEN EQH_UseSaniPrice = 1 THEN isnull(EQH_SaniPrice,0) ELSE PB.PRI_Price END,st_san.sto_price) > 0 
-       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c') THEN 'SOOE' END AS SOOE
+       AND ET.ety_name IN  ('POU Cooler', 'Bottle Cooler', 'Water Heater','Hospitality','HAND SANITISER','Cerise','Taps', 'Purezza','Bottle Filling Stati','Coffee m/c', 'Filter System', 'Hand Wash Station', 'Vending m/c','Glass Washer','Ice Maker','Air Purifier') THEN 'SOOE' END AS SOOE
 -------------------------------------------FILTER--------------------------------------------
 ,EQH_F_STOCK_CODE
 , EQH_UseFilterPrice

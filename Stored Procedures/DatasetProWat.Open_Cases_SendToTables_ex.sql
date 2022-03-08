@@ -15,6 +15,7 @@ GO
 --18-01-2022	RYFE	Added 12 month closed for complaints
 --20-01-2022    RYFE	Added QST_ID 17,25,26 to be included in the select from quit table
 --23-02-2022    RYFE	Added logic according email from Lisa 22/02/2022
+--08-03-2022    RYFE    Added site survay from orders as case
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[Open_Cases_SendToTables_ex]
 AS
@@ -279,6 +280,66 @@ where (COM.COM_CloseDate = 0 OR dbo.convertfromclarion(COM.COM_CloseDate) > DATE
 AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
                          ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
 
+INSERT into	[Dataset].[Open_Cases_ex]
+	( [MIG_SITE_NAME],
+	  [CASE_LOCAL_ID],
+	  [TITLE],
+	  [CONTACT_DATE],
+	  [ORGANIZATION_ID],
+	  [SHOW_EXTERNALLY],
+	  [DESCRIPTION],
+	  [CASE_CATEGORY_ID_DB],
+	  [TYPE_ID_DB],
+	  [OUR_SEVERITY_DB],
+	  [OUR_PRIORITY],
+	  [CUSTOMER_SEVERITY_DB],
+	  [OWNER],
+	  [CUSTOMER_ID],
+	  [CUSTOMER_SUPPORT_ORG],
+	  [CALLER_EMAIL],
+	  [LANG_CODE_DB],
+	  [SECOND_CATEGORY],
+	  [CONTACT_NAME],
+	  [NX_CASE_STATUS]
+	)  
+	select 
+      'GBASP'                                                        as [MIG_SITE_NAME]
+      ,''                                                                  as [CASE_LOCAL_ID]
+      ,'Site Survey'                                          as [TITLE]
+      ,dbo.convertfromclarion(ORD_Request_Date) as [CONTACT_DATE]
+      ,'UKWL'                                                 as [ORGANIZATION_ID]
+      ,'FALSE'                                                             as [SHOW_EXTERNALLY]
+      ,concat('Legacy Wo No:',ord_ordernum)            as [DESCRIPTION]
+     ,o.ord_ordreason                                               as [CASE_CATEGORY_ID_DB]
+      ,3                                                                   as [TYPE_ID_DB]
+      ,'103'                                                         as [OUR_SEVERITY_DB]
+      ,'102'                                                         as [OUR_PRIORITY]
+      ,'103'                                                         as [CUSTOMER_SEVERITY_DB]
+      ,''                                                                  as [OWNER]
+      ,ord_account                                                   as [CUSTOMER_ID]
+      ,'UKWL'                                                        as [CUSTOMER_SUPPORT_ORG]
+      ,''                                                                  as  [CALLER_EMAIL]
+      ,'en'                                                                as [LANG_CODE_DB]
+      ,''                                                                  as [SECOND_CATEGORY]
+      ,ord_placedby                                                  as [CONTACT_NAME]
+      ,'OPEN'                                                        as [CASE_STATUS]
+         from [DatasetProWat].[Syn_Orders_ex]  O
+        
+  LEFT JOIN [DatasetProWat].[Syn_Customer_ex]  C		   ON C.CUS_ACCOUNT  = O.ORD_Account
+  LEFT OUTER JOIN
+        Dataset.Customer_Filter_Override ON 'GBASP' = Dataset.Customer_Filter_Override.MIG_SITE_NAME AND TRIM(CONVERT(varchar(100), C.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
+  
+   where ord_ordreason in (103,113,119,129)
+
+   AND (Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), 
+                         ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(varchar(100), C.CUS_Account)), LEFT(TRIM(C.CUS_Company), 100), ISNULL(C.CUS_Type, '{NULL}')) > 0)
+  
+  
+  
+  
+  
+  
+  
   UPDATE [Dataset].[Open_Cases_ex]
   SET CASE_LOCAL_ID = @CASELOCALID,@CASELOCALID = @CASELOCALID + 1
 --  set interfaceID  = @i , @i = @i + 1

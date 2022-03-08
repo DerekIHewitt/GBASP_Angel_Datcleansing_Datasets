@@ -17,6 +17,7 @@ GO
 --			   RYFE 2021-11-30 CALL Pm actions to get DEL-19L as JOB
 --			   RYFE 2021-12-09 CALL pm actions on seperate select with new logic
 --			   RYFE 2021-12-10 IFSDEF0016774 changes
+--			   RISM 2022-02-24 Sub type actions should pull the next date into start value. Was pulling getdate() so amended
 =============================================*/
 CREATE PROCEDURE [DatasetProWat].[PM_Actions_Non_SC_SendToTables_ex]
 AS
@@ -137,7 +138,7 @@ SET NOCOUNT ON;
       ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN 'CALL' WHEN S.[PM ACTION TYPE] = 'SUB'THEN 'DEL' ELSE '' END	AS [ACTION]
       ,'UK300'																									AS [WO_SITE] -- CUS_DEPOTID was removed because the WO site sould be UK300 always
       ,'DEL'																									AS [WORK_TYPE]
-      ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN '' WHEN S.[PM ACTION TYPE] = 'SUB'THEN GETDATE() ELSE '' END	AS [START_VALUE]
+      ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN '' WHEN S.[PM ACTION TYPE] = 'SUB'THEN s.[Next Del] ELSE '' END	AS [START_VALUE]
       ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN '' WHEN S.[PM ACTION TYPE] = 'SUB' THEN CONVERT(varchar,AUT_FREQ) ELSE '' END AS  [INTERVAL]
       ,CASE WHEN S.[PM ACTION TYPE] = '1-20' THEN '' WHEN S.[PM ACTION TYPE] = 'SUB' THEN 'Week' ELSE '' END	AS [INTERVAL_UNIT]
       ,AUT_ACCOUNT																								AS [CUSTOMER_ID]
