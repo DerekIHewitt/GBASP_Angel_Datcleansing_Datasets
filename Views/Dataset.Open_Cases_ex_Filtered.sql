@@ -5,7 +5,8 @@ GO
 CREATE VIEW [Dataset].[Open_Cases_ex_Filtered]
 AS
 SELECT        MIG_SITE_NAME, CASE_LOCAL_ID, TITLE, CONTACT_DATE, ORGANIZATION_ID, SHOW_EXTERNALLY, DESCRIPTION, CASE_CATEGORY_ID_DB, TYPE_ID_DB, OUR_SEVERITY_DB, OUR_PRIORITY, 
-                         CUSTOMER_SEVERITY_DB, OWNER, CUSTOMER_ID, CUSTOMER_SUPPORT_ORG, CALLER_EMAIL, LANG_CODE_DB, SECOND_CATEGORY, CONTACT_NAME, NX_CASE_STATUS AS CASE_STATUS
+                         CUSTOMER_SEVERITY_DB, OWNER, CUSTOMER_ID, CUSTOMER_SUPPORT_ORG, CALLER_EMAIL, LANG_CODE_DB, SECOND_CATEGORY, CONTACT_NAME, NX_CASE_STATUS AS CASE_STATUS, 
+                         NX_LEGACY_CASE_ID
 FROM            Dataset.Open_Cases_ex
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
@@ -87,7 +88,7 @@ Begin DesignProperties =
                Right = 385
             End
             DisplayFlags = 280
-            TopColumn = 8
+            TopColumn = 9
          End
       End
    End

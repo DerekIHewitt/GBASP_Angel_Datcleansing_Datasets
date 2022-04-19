@@ -34,7 +34,7 @@ SET NOCOUNT ON;
 	
 	  -- RISM 2021-06-28
 	 DECLARE  @MIG_SITE_NAME VARCHAR(5) = 'GBASP';
-     DECLARE  @cutdate datetime = CONVERT(VARCHAR, '02/22/2022', 103);
+     DECLARE  @cutdate datetime = CONVERT(VARCHAR, '03/31/2022', 103);
 	--DECLARE @FilterMode int = Dataset.Filter_Mode('ex','Customer');
 
 	---------------- Delete records already in the loading table for this site -----------------------------------------------

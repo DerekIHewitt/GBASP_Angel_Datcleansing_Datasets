@@ -15,13 +15,15 @@ GO
 --	Ver	Who		When			What
 --	V2	DIH		22/02/2021		Added Pre and Post sript running.
 --	V3	DIH		11/05/2021		Can handle {CALC} synonyms
+--	V4	DIH		14/04/2022		Handle Migration/Acquisition type of links.
 --
 -- =============================================
 CREATE  PROCEDURE [DatasetMasterOnly].[sysUpdate_Synonym]
-   @DbNum int = 2								-- Db_Num = 1 for Data cleansing
+   @DbNum int = 2,								-- Db_Num = 1 for Data cleansing
 												-- Dn_Num = 2 for data extraction
 												-- Db_Num = 1000 for Nexus_Tranform extraction.
 												-- Db_Num = 1010 for Nexus_Master MDM database
+   @LinkForAcquisition bit NULL					-- If NULL/False then do the linkage for Migration (Default).
 AS
 
 DECLARE
@@ -29,6 +31,8 @@ DECLARE
    @SynonymName varchar(100),
    @TargetTable varchar(100),
    @TargetSchema varchar(100),
+   @AcquisitionTargetObjectSchema varchar(50),
+   @AcquisitionTargetObjectName as varchar(50),
    @DbName varchar(100),
    @SQL nvarchar(4000),
    @SQL_DROP nvarchar(4000),
@@ -38,6 +42,9 @@ DECLARE
    @ID int,
    @Detail varchar(255);
 
+   SET @LinkForAcquisition = ISNULL(@LinkForAcquisition,0);		-- Link for Migration is the default. 
+
+   --========================================================================================================
 
    PRINT 'Run PreProcess scripts';
 
@@ -77,6 +84,7 @@ DECLARE
    DECLARE Synonmy_CURSOR CURSOR FOR 		
 			SELECT	[SynonymSchema], [SynonymName],
 					[TargetObjectSchema], [TargetObjectName],
+					[AcquisitionTargetObjectSchema], [AcquisitionTargetObjectName],
 					[DbName]
 			FROM [DatasetSys].[sysSynonym]			SS
 			JOIN [DatasetSys].[sysSynonym_Control]	SSC
@@ -85,19 +93,37 @@ DECLARE
 
    	OPEN Synonmy_CURSOR
 
-	FETCH NEXT FROM Synonmy_CURSOR INTO    @SynonymSchema, @SynonymName, @TargetSchema, @TargetTable, @DbName
+	FETCH NEXT FROM Synonmy_CURSOR INTO    
+		@SynonymSchema, @SynonymName, 
+		@TargetSchema, @TargetTable, 
+		@AcquisitionTargetObjectSchema, @AcquisitionTargetObjectName, 
+		@DbName
 
 
 	WHILE @@FETCH_STATUS <> -1
 		BEGIN
+			IF (TRIM(ISNULL(@AcquisitionTargetObjectSchema,'')) = '') SET @AcquisitionTargetObjectSchema = @TargetSchema;
+			IF (TRIM(ISNULL(@AcquisitionTargetObjectName,'')) = '') SET @AcquisitionTargetObjectName = @TargetTable;
+
 			IF (@SynonymName = '{CALC}')
 				BEGIN
 					SET @SynonymName = @TargetTable + '_DcEx';
 					SET @TargetTable = @TargetTable + '_' + @DbName 
+					SET @AcquisitionTargetObjectName = @AcquisitionTargetObjectName + '_' + @DbName 
 					SET @DbName = '';
 				END
-			SET @SQL =  'CREATE SYNONYM [' + @SynonymSchema + '].['  + @SynonymName + '] FOR ' 
-				+ @DbName + '.[' + @TargetSchema + '].[' + @TargetTable + ']'; 
+
+			IF (@LinkForAcquisition = 0)
+				BEGIN
+					SET @SQL =  'CREATE SYNONYM [' + @SynonymSchema + '].['  + @SynonymName + '] FOR ' 
+							 +	@DbName + '.['  + @TargetSchema + '].[' + @TargetTable + ']'; 
+				END
+			ELSE
+				BEGIN
+					SET @SQL =  'CREATE SYNONYM [' + @SynonymSchema + '].['  + @SynonymName + '] FOR ' 
+							 +	@DbName + '.['  + @AcquisitionTargetoBJECTSchema + '].[' + @AcquisitionTargetObjectName + ']'; 
+				END
+
 			SET @SQL_DROP = 'DROP SYNONYM IF EXISTS [' + @SynonymSchema + '].[' + @SynonymName + ']'; 
 
 			PRINT @SQL
@@ -105,7 +131,11 @@ DECLARE
 			EXEC sp_executesql @SQL_DROP
 			EXEC sp_executesql @SQL
 
-			FETCH NEXT FROM Synonmy_CURSOR INTO @SynonymSchema, @SynonymName, @TargetSchema, @TargetTable, @DbName
+			FETCH NEXT FROM Synonmy_CURSOR INTO 
+				@SynonymSchema, @SynonymName, 
+				@TargetSchema, @TargetTable, 
+				@AcquisitionTargetObjectSchema, @AcquisitionTargetObjectName, 
+				@DbName
 		END
 
 	CLOSE Synonmy_CURSOR

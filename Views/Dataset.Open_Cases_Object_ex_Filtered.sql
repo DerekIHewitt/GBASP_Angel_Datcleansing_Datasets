@@ -2,12 +2,11 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE VIEW [Dataset].[Open_Cases_dc_Filtered]
+
+CREATE VIEW [Dataset].[Open_Cases_Object_ex_Filtered]
 AS
-SELECT        MIG_SITE_NAME, CASE_LOCAL_ID, TITLE, CONTACT_DATE, ORGANIZATION_ID, SHOW_EXTERNALLY, DESCRIPTION, CASE_CATEGORY_ID_DB, TYPE_ID_DB, OUR_SEVERITY_DB, OUR_PRIORITY, 
-                         CUSTOMER_SEVERITY_DB, OWNER, CUSTOMER_ID, CUSTOMER_SUPPORT_ORG, CALLER_EMAIL, LANG_CODE_DB, SECOND_CATEGORY, CONTACT_NAME, NX_CASE_STATUS AS CASE_STATUS, 
-                         NX_LEGACY_CASE_ID
-FROM            Dataset.Open_Cases_DC
+SELECT        PK, MIG_SITE_NAME, LEGACY_CASE_ID, OBJECT_TYPE, SITE, OBJECT_ID, MIG_CREATED_DATE
+FROM            Dataset.Open_Cases_Object_ex
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 
@@ -80,15 +79,15 @@ Begin DesignProperties =
          Left = 0
       End
       Begin Tables = 
-         Begin Table = "Open_Cases_DC (Dataset)"
+         Begin Table = "Open_Cases_Object_ex (Dataset)"
             Begin Extent = 
                Top = 6
                Left = 38
-               Bottom = 315
-               Right = 321
+               Bottom = 284
+               Right = 496
             End
             DisplayFlags = 280
-            TopColumn = 8
+            TopColumn = 0
          End
       End
    End
@@ -116,9 +115,9 @@ Begin DesignProperties =
       End
    End
 End
-', 'SCHEMA', N'Dataset', 'VIEW', N'Open_Cases_dc_Filtered', NULL, NULL
+', 'SCHEMA', N'Dataset', 'VIEW', N'Open_Cases_Object_ex_Filtered', NULL, NULL
 GO
 DECLARE @xp int
 SELECT @xp=1
-EXEC sp_addextendedproperty N'MS_DiagramPaneCount', @xp, 'SCHEMA', N'Dataset', 'VIEW', N'Open_Cases_dc_Filtered', NULL, NULL
+EXEC sp_addextendedproperty N'MS_DiagramPaneCount', @xp, 'SCHEMA', N'Dataset', 'VIEW', N'Open_Cases_Object_ex_Filtered', NULL, NULL
 GO
