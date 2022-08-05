@@ -1,2 +1,2 @@
-CREATE SYNONYM [Dataset].[Customer_Header_DcEx] FOR [Dataset].[Customer_Header_EX]
+CREATE SYNONYM [Dataset].[Customer_Header_DcEx] FOR [Dataset].[Customer_Header_DC]
 GO

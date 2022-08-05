@@ -1,0 +1,21 @@
+CREATE TABLE [Dataset].[cariadCommMethodStaticTable]
+(
+[MIG_SITE_NAME] [char] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[PARTY_TYPE_DB] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[IDENTITY] [varchar] (42) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[COMM_ID] [float] NOT NULL,
+[COMM_NAME] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[COMM_DESCRIPTION] [varchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[METHOD_ID_DB] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[COMM_METHOD_VALUE] [varchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[DEFAULT_PER_METHOD] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_ADDRESS_ID] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_ADDRESS_DEFAULT] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[EXT_NO] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[POD_EMAIL_DB] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_COMPANY] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[ID] [float] NULL,
+[MIG_COMMENT] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MIG_CREATED_DATE] [datetime2] NULL
+) ON [PRIMARY]
+GO

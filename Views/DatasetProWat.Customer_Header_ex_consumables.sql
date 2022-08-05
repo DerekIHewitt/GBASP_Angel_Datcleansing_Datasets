@@ -2,11 +2,12 @@ SET QUOTED_IDENTIFIER ON
 GO
 SET ANSI_NULLS ON
 GO
-CREATE VIEW [DatasetProWat].[Customer_Header_ex_Filtered]
+
+CREATE VIEW [DatasetProWat].[Customer_Header_ex_consumables]
 AS
 SELECT
                 ROW_NUMBER() OVER (ORDER BY ex.CUS_Account)                 AS ID
-              , 'GBASP'                                                     AS MIG_SITE_NAME
+              , 'GBAS4'                                                     AS MIG_SITE_NAME
               , ''                                                          AS MIG_COMMENT
               , GETDATE()                                                   AS MIG_CREATED_DATE
               , TRIM(CONVERT(VARCHAR(100), ex.CUS_Account))                 AS CUSTOMER_ID
@@ -272,8 +273,9 @@ FROM
                                                 AND TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)) = Dataset.Customer_Filter_Override.CUSTOMER_ID
 WHERE
                 (
-                                Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)), LEFT(TRIM(ex.CUS_Company), 100), ISNULL(ex.CUS_Type, '{NULL}')) > 0
+                                Dataset.Filter_Customer('GBASP', 'ex', ISNULL(Dataset.Customer_Filter_Override.isAlwaysIncluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsAlwaysExcluded, 0), ISNULL(Dataset.Customer_Filter_Override.IsOnSubSetList, 0), TRIM(CONVERT(VARCHAR(100), ex.CUS_Account)), LEFT(TRIM(ex.CUS_Company), 100), ISNULL(ex.CUS_Type, '{NULL}')) = 0
                 )
+				and ex.cus_type = 'CONSUMABLE'
 GO
 EXEC sp_addextendedproperty N'MS_DiagramPane1', N'[0E232FF0-B466-11cf-A24F-00AA00A3EFFF, 1.00]
 Begin DesignProperties = 
@@ -372,9 +374,9 @@ Begin DesignProperties =
       End
    End
 End
-', 'SCHEMA', N'DatasetProWat', 'VIEW', N'Customer_Header_ex_Filtered', NULL, NULL
+', 'SCHEMA', N'DatasetProWat', 'VIEW', N'Customer_Header_ex_consumables', NULL, NULL
 GO
 DECLARE @xp int
 SELECT @xp=1
-EXEC sp_addextendedproperty N'MS_DiagramPaneCount', @xp, 'SCHEMA', N'DatasetProWat', 'VIEW', N'Customer_Header_ex_Filtered', NULL, NULL
+EXEC sp_addextendedproperty N'MS_DiagramPaneCount', @xp, 'SCHEMA', N'DatasetProWat', 'VIEW', N'Customer_Header_ex_consumables', NULL, NULL
 GO

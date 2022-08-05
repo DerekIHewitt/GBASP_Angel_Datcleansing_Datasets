@@ -1,0 +1,25 @@
+CREATE TABLE [Dataset].[CariadSerialObjectStaticTable_OLD]
+(
+[ID] [float] NULL,
+[MIG_COMMENT] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MIG_CREATED_DATE] [datetime2] NULL,
+[MIG_SITE_NAME] [char] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[MCH_CODE] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MCH_NAME] [varchar] (200) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[CUSTOMER_ID] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[PART_NO] [varchar] (25) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[SERIAL_NO] [varchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[INSTALLATION_DATE] [datetime2] NULL,
+[NX_LATITUDE] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_LONGITUDE] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[OWNERSHIP] [varchar] (4000) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[OWNER] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[LOCATION1] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[LOCATION2] [varchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[LEGACY_REFERENCE] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DELIVERY_ADDRESS] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NX_HAS_PEDAL] [char] (2) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_OPERATIONAL_STATUS] [varchar] (20) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[NX_WARRANTY_END_DATE] [datetime2] NULL
+) ON [PRIMARY]
+GO
