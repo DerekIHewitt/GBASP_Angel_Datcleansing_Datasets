@@ -1,0 +1,23 @@
+CREATE TABLE [dbo].[AP Object Cut 1 Load 1]
+(
+[MIG_SITE_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[CONTRACT] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MCH_CODE] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MCH_NAME] [nvarchar] (150) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SUP_MCH_CODE] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SUP_CONTRACT] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[PART_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[SERIAL_NO] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[INSTALLATION_DATE] [datetime2] NOT NULL,
+[LATITUDE] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LONGITUDE] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[OWNERSHIP] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[OWNER] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[LOCATION1] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LOCATION2] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[LEGACY_REFERENCE] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[DELIVERY_ADDRESS] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[OPERATIONAL_STATUS] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[WARRANTY_END_DATE] [nvarchar] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+) ON [PRIMARY]
+GO
