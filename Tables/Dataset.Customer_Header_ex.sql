@@ -74,10 +74,13 @@ CREATE TABLE [Dataset].[Customer_Header_ex]
 [NX_BR_CONSOLIDATION] [varchar] (30) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NX_LEGAL_ENTITY_DB] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [NX_IMPORT_ACCOUNT] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Header_ex_NX_IMPORT_ACCOUNT] DEFAULT (''),
-[NX_ACCOUNT_GROUP] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
+[NX_ACCOUNT_GROUP] [nvarchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
+[NX_CUST_GROUP] [nvarchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Header_ex_NX_CUST_GROUP] DEFAULT (''),
+[NX_CURRENCY] [nvarchar] (3) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Header_ex_NX_CURRENCY] DEFAULT (''),
+[NX_REMINDER_TEMPLATE] [nvarchar] (15) COLLATE SQL_Latin1_General_CP1_CI_AS NULL CONSTRAINT [DF_Customer_Header_ex_NX_REMINDER_TEMPLATE] DEFAULT ('')
 ) ON [PRIMARY]
 GO
-ALTER TABLE [Dataset].[Customer_Header_ex] ADD CONSTRAINT [PK_Customer_Header_ex] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]
+ALTER TABLE [Dataset].[Customer_Header_ex] ADD CONSTRAINT [PK_Customer_Header_ex] PRIMARY KEY CLUSTERED ([ID]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [IX_Customer_Header_ex] ON [Dataset].[Customer_Header_ex] ([MIG_SITE_NAME], [CUSTOMER_ID], [ID]) ON [PRIMARY]
 GO
