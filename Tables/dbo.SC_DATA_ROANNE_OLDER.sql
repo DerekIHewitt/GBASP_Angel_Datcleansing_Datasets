@@ -1,4 +1,4 @@
-CREATE TABLE [dbo].[SC_DATA_ROANNE_OLD]
+CREATE TABLE [dbo].[SC_DATA_ROANNE_OLDER]
 (
 [MIG_Object] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [MIG_Part] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
