@@ -7,7 +7,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_Processed_dc]
 [CUSTOMER_DELIVERY] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [CUSTOMER_INVOICE] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [LEGACY_MACHINE_ID] [varchar] (100) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
-[MATRIX_TYPE] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
+[MATRIX_TYPE] [varchar] (40) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [CONTRACT_NAME] [nvarchar] (50) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SITE] [varchar] (5) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [INTERVAL_UNIT] [varchar] (25) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_Processed_dc]
 [NX_CURRENT_CONTRACT] [varchar] (255) COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
-ALTER TABLE [Dataset].[ServiceContract_Raw_Processed_dc] ADD CONSTRAINT [PK_ServiceContract_Raw_Processed_dc] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]
+ALTER TABLE [Dataset].[ServiceContract_Raw_Processed_dc] ADD CONSTRAINT [PK_ServiceContract_Raw_Processed_dc] PRIMARY KEY CLUSTERED ([ID]) ON [PRIMARY]
 GO
 CREATE NONCLUSTERED INDEX [IX_ServiceContract_Raw_Processed_dc] ON [Dataset].[ServiceContract_Raw_Processed_dc] ([MIG_SITE_NAME], [CUSTOMER_DELIVERY], [CUSTOMER_INVOICE], [LEGACY_MACHINE_ID], [MATRIX_TYPE], [ID]) ON [PRIMARY]
 GO

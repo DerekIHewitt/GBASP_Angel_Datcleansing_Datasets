@@ -42,7 +42,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_ovl]
 [SRC_OTHER1_UNIT] [char] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_OTHER1_PRICE_PER_UNIT] [decimal] (18, 4) NOT NULL,
 [SRC_OTHER1_INVOICE_FREQ] [int] NOT NULL,
-[SRC_OTHER1_INVOICE_QTY] [int] NOT NULL,
+[SRC_OTHER1_INVOICE_QTY] [decimal] (18, 4) NOT NULL,
 [SRC_OTHER1_NEXT_INVOICE_DATE] [date] NULL,
 [SRC_OTHER1_NEXT_PERIOD_FROM] [date] NULL,
 [SRC_OTHER2_TYPE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
@@ -50,7 +50,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_ovl]
 [SRC_OTHER2_UNIT] [char] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NOT NULL,
 [SRC_OTHER2_PRICE_PER_UNIT] [decimal] (18, 4) NOT NULL,
 [SRC_OTHER2_INVOICE_FREQ] [int] NOT NULL,
-[SRC_OTHER2_INVOICE_QTY] [int] NOT NULL,
+[SRC_OTHER2_INVOICE_QTY] [decimal] (18, 4) NOT NULL,
 [SRC_OTHER2_NEXT_INVOICE_DATE] [date] NULL,
 [SRC_OTHER2_NEXT_PERIOD_FROM] [date] NULL,
 [SRC_HASADDITIONALDATA] [bit] NOT NULL,
@@ -101,7 +101,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_ovl]
 [OTHER1_UNIT] [char] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [OTHER1_PRICE_PER_UNIT] [decimal] (18, 4) NULL,
 [OTHER1_INVOICE_FREQ] [int] NULL,
-[OTHER1_INVOICE_QTY] [int] NULL,
+[OTHER1_INVOICE_QTY] [decimal] (18, 4) NULL,
 [OTHER1_NEXT_INVOICE_DATE] [date] NULL,
 [OTHER1_NEXT_PERIOD_FROM] [date] NULL,
 [OTHER2_TYPE] [varchar] (10) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
@@ -109,7 +109,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_ovl]
 [OTHER2_UNIT] [char] (1) COLLATE SQL_Latin1_General_CP1_CI_AS NULL,
 [OTHER2_PRICE_PER_UNIT] [decimal] (18, 4) NULL,
 [OTHER2_INVOICE_FREQ] [int] NULL,
-[OTHER2_INVOICE_QTY] [int] NULL,
+[OTHER2_INVOICE_QTY] [decimal] (18, 4) NULL,
 [OTHER2_NEXT_INVOICE_DATE] [date] NULL,
 [OTHER2_NEXT_PERIOD_FROM] [date] NULL,
 [HASADDITIONALDATA] [bit] NULL,
@@ -132,7 +132,7 @@ CREATE TABLE [Dataset].[ServiceContract_Raw_ovl]
 [COMMENT] [text] COLLATE SQL_Latin1_General_CP1_CI_AS NULL
 ) ON [PRIMARY]
 GO
-ALTER TABLE [Dataset].[ServiceContract_Raw_ovl] ADD CONSTRAINT [PK_ServiceContract_Raw_ovlEqpData] PRIMARY KEY CLUSTERED  ([ID]) ON [PRIMARY]
+ALTER TABLE [Dataset].[ServiceContract_Raw_ovl] ADD CONSTRAINT [PK_ServiceContract_Raw_ovlEqpData] PRIMARY KEY CLUSTERED ([ID]) ON [PRIMARY]
 GO
 EXEC sp_addextendedproperty N'MS_Description', N'When a date is not supplied, the transformation will use system or ''go live'' date.', 'SCHEMA', N'Dataset', 'TABLE', N'ServiceContract_Raw_ovl', 'COLUMN', N'BILLING_IFS_FROM_DATE'
 GO
